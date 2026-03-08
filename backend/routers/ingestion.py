@@ -55,6 +55,10 @@ def list_sources(db: Session = Depends(get_db)):
             language=source.language,
             is_active=source.is_active,
             article_count=count,
+            economic_school=source.economic_school,
+            economic_bias=source.economic_bias,
+            analytical_framework=source.analytical_framework,
+            salience_domains=source.salience_domains,
         )
         result.append(status)
     return result

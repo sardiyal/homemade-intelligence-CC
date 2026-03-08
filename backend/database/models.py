@@ -17,6 +17,26 @@ class Source(Base):
     bias_label = Column(Text)  # center / left / right / state-affiliated / independent
     language = Column(Text)  # ISO 639-1
     is_active = Column(Boolean, default=True)
+    # Economic school of thought (theoretical framework): neoclassical / keynesian / monetarist /
+    # supply-side / austrian / institutional / heterodox / empirical / mixed — null for non-economics sources
+    economic_school = Column(Text)
+    # Economic policy bias (policy direction, independent of social/political bias):
+    # progressive / center / market-oriented / state-directed
+    # progressive = favors government intervention, redistribution, regulation
+    # market-oriented = favors free markets, deregulation, low taxes
+    # state-directed = state-capitalist systems (China, Russia, Gulf states) — different axis entirely
+    economic_bias = Column(Text)
+    # Analytical/IR theory framework used for geopolitical and social analysis:
+    # realist        = power, national interest, security dilemmas, balance of power (Waltz, Mearsheimer)
+    # liberal        = institutions, norms, interdependence, democratic peace (Keohane, Ikenberry)
+    # constructivist = ideas, identities, norms, social construction of threats (Wendt, Finnemore)
+    # critical       = power structures, post-colonialism, hegemony critique (Cox, Gramsci)
+    # empirical      = data-driven; no dominant IR theory framework
+    # mixed          = deliberately pluralist; applies multiple IR frameworks
+    # (omit for sources without a systematic IR/geopolitical analytical stance)
+    analytical_framework = Column(Text)
+    # Comma-separated domain tags where this source is most salient, e.g. "markets,energy"
+    salience_domains = Column(Text)
 
     ingested_content = relationship("IngestedContent", back_populates="source")
 

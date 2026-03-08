@@ -43,6 +43,10 @@ def sync_sources_to_db(db: Session) -> int:
             existing.bias_label = feed.get("bias_label", existing.bias_label)
             existing.language = feed.get("language", existing.language)
             existing.is_active = feed.get("is_active", True)
+            existing.economic_school = feed.get("economic_school")
+            existing.economic_bias = feed.get("economic_bias")
+            existing.analytical_framework = feed.get("analytical_framework")
+            existing.salience_domains = _join_domains(feed.get("salience_domains"))
         else:
             source = Source(
                 name=feed.get("name", "Unknown"),
@@ -52,6 +56,10 @@ def sync_sources_to_db(db: Session) -> int:
                 bias_label=feed.get("bias_label", "center"),
                 language=feed.get("language", "en"),
                 is_active=feed.get("is_active", True),
+                economic_school=feed.get("economic_school"),
+                economic_bias=feed.get("economic_bias"),
+                analytical_framework=feed.get("analytical_framework"),
+                salience_domains=_join_domains(feed.get("salience_domains")),
             )
             db.add(source)
         count += 1
@@ -59,3 +67,12 @@ def sync_sources_to_db(db: Session) -> int:
     db.commit()
     logger.info("Synced %d sources from rss_feeds.yaml", count)
     return count
+
+
+def _join_domains(domains) -> str | None:
+    """Convert a YAML list of domain strings to a comma-separated string, or None."""
+    if not domains:
+        return None
+    if isinstance(domains, list):
+        return ",".join(str(d) for d in domains)
+    return str(domains)

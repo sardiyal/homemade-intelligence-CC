@@ -31,5 +31,10 @@ class SourceStatus(BaseModel):
     language: str | None
     is_active: bool | None
     article_count: int = 0
+    # Extended metadata — bias and framework dimensions
+    economic_school: str | None = None
+    economic_bias: str | None = None
+    analytical_framework: str | None = None
+    salience_domains: str | None = None
 
     model_config = {"from_attributes": True}

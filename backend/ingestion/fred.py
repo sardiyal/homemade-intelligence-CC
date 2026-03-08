@@ -34,10 +34,16 @@ def _ensure_fred_source(db: Session) -> Source:
             bias_label="center",
             language="en",
             is_active=True,
+            economic_school="empirical",
+            salience_domains="markets,general",
         )
         db.add(source)
         db.commit()
         db.refresh(source)
+    elif not source.economic_school:
+        source.economic_school = "empirical"
+        source.salience_domains = "markets,general"
+        db.commit()
     return source
 
 
@@ -107,6 +113,9 @@ def ingest_fred_indicators(db: Session) -> int:
                     "bias_label": "center",
                     "language": "en",
                     "layer": 3,
+                    "economic_school": "empirical",
+                    "economic_bias": "center",
+                    "salience_domains": "markets,general",
                     "url": content.url,
                     "ingested_content_id": content.id,
                     "series_id": series_id,

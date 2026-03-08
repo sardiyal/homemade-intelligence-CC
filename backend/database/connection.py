@@ -48,7 +48,30 @@ def get_db():
 
 
 def create_all_tables() -> None:
-    """Create all ORM-defined tables (idempotent)."""
+    """Create all ORM-defined tables and apply lightweight column migrations (idempotent)."""
     from backend.database import models  # noqa: F401  # registers models
 
     Base.metadata.create_all(bind=engine)
+    _migrate_add_columns()
+
+
+def _migrate_add_columns() -> None:
+    """Add new columns to existing tables via raw SQL if they don't already exist.
+
+    SQLAlchemy's create_all does not ALTER existing tables, so new nullable columns
+    must be added manually. Safe to call repeatedly — no-ops if columns already exist.
+    """
+    _new_columns = [
+        ("sources", "economic_school", "TEXT"),
+        ("sources", "economic_bias", "TEXT"),
+        ("sources", "salience_domains", "TEXT"),
+        ("sources", "analytical_framework", "TEXT"),
+    ]
+    with engine.connect() as conn:
+        for table, column, col_type in _new_columns:
+            existing = [
+                row[1] for row in conn.execute(__import__("sqlalchemy").text(f"PRAGMA table_info({table})")).fetchall()
+            ]
+            if column not in existing:
+                conn.execute(__import__("sqlalchemy").text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
+                conn.commit()

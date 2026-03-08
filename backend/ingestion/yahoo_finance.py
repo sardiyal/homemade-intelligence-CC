@@ -33,10 +33,16 @@ def _ensure_yfinance_source(db: Session) -> Source:
             bias_label="center",
             language="en",
             is_active=True,
+            economic_school="empirical",
+            salience_domains="markets",
         )
         db.add(source)
         db.commit()
         db.refresh(source)
+    elif not source.economic_school:
+        source.economic_school = "empirical"
+        source.salience_domains = "markets"
+        db.commit()
     return source
 
 
@@ -97,6 +103,9 @@ def ingest_market_snapshot(db: Session) -> int:
                     "bias_label": "center",
                     "language": "en",
                     "layer": 7,
+                    "economic_school": "empirical",
+                    "economic_bias": "center",
+                    "salience_domains": "markets",
                     "url": content.url,
                     "ingested_content_id": content.id,
                     "ticker": ticker_sym,

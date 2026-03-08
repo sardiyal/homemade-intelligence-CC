@@ -14,6 +14,10 @@ interface Source {
   language: string | null;
   is_active: boolean | null;
   article_count: number;
+  economic_school: string | null;
+  economic_bias: string | null;
+  analytical_framework: string | null;
+  salience_domains: string | null;
 }
 
 interface PollStatus {
@@ -30,9 +34,27 @@ const BIAS_COLORS: Record<string, string> = {
   center: "text-gray-300 bg-gray-800",
   left: "text-blue-300 bg-blue-900",
   right: "text-red-300 bg-red-900",
+  "center-left": "text-blue-200 bg-blue-950",
+  "center-right": "text-red-200 bg-red-950",
   "state-affiliated": "text-orange-300 bg-orange-900",
   independent: "text-green-300 bg-green-900",
   unknown: "text-gray-400 bg-gray-800",
+};
+
+const ECON_BIAS_COLORS: Record<string, string> = {
+  progressive: "text-teal-300 bg-teal-900",
+  center: "text-gray-300 bg-gray-800",
+  "market-oriented": "text-yellow-300 bg-yellow-900",
+  "state-directed": "text-orange-300 bg-orange-900",
+};
+
+const IR_FRAMEWORK_COLORS: Record<string, string> = {
+  realist: "text-red-300 bg-red-950",
+  liberal: "text-blue-300 bg-blue-950",
+  constructivist: "text-purple-300 bg-purple-950",
+  critical: "text-pink-300 bg-pink-950",
+  empirical: "text-gray-300 bg-gray-800",
+  mixed: "text-indigo-300 bg-indigo-950",
 };
 
 export default function SourcesPage() {
@@ -112,9 +134,11 @@ export default function SourcesPage() {
               <tr className="text-left text-gray-400 border-b border-gray-800">
                 <th className="pb-2 pr-4">Source</th>
                 <th className="pb-2 pr-4">Layer</th>
-                <th className="pb-2 pr-4">Bias</th>
+                <th className="pb-2 pr-4">Social Bias</th>
+                <th className="pb-2 pr-4">Econ Bias</th>
+                <th className="pb-2 pr-4">IR Framework</th>
+                <th className="pb-2 pr-4">Econ School</th>
                 <th className="pb-2 pr-4">Lang</th>
-                <th className="pb-2 pr-4">Type</th>
                 <th className="pb-2 pr-4">Articles</th>
                 <th className="pb-2">Status</th>
               </tr>
@@ -127,6 +151,9 @@ export default function SourcesPage() {
                     {s.feed_url && (
                       <p className="text-xs text-gray-500 truncate max-w-[200px]">{s.feed_url}</p>
                     )}
+                    {s.salience_domains && (
+                      <p className="text-xs text-gray-600 mt-0.5">{s.salience_domains}</p>
+                    )}
                   </td>
                   <td className="py-2 pr-4">{s.layer ?? "—"}</td>
                   <td className="py-2 pr-4">
@@ -134,8 +161,24 @@ export default function SourcesPage() {
                       {s.bias_label || "unknown"}
                     </span>
                   </td>
+                  <td className="py-2 pr-4">
+                    {s.economic_bias ? (
+                      <span className={`px-2 py-0.5 rounded text-xs ${ECON_BIAS_COLORS[s.economic_bias] ?? "text-gray-400 bg-gray-800"}`}>
+                        {s.economic_bias}
+                      </span>
+                    ) : <span className="text-gray-600">—</span>}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {s.analytical_framework ? (
+                      <span className={`px-2 py-0.5 rounded text-xs ${IR_FRAMEWORK_COLORS[s.analytical_framework] ?? "text-gray-400 bg-gray-800"}`}>
+                        {s.analytical_framework}
+                      </span>
+                    ) : <span className="text-gray-600">—</span>}
+                  </td>
+                  <td className="py-2 pr-4">
+                    <span className="text-xs text-gray-400">{s.economic_school ?? "—"}</span>
+                  </td>
                   <td className="py-2 pr-4">{s.language ?? "—"}</td>
-                  <td className="py-2 pr-4 text-gray-400">{s.source_type ?? "—"}</td>
                   <td className="py-2 pr-4">{s.article_count}</td>
                   <td className="py-2">
                     <span className={`px-2 py-0.5 rounded text-xs ${s.is_active ? "bg-green-900 text-green-300" : "bg-gray-800 text-gray-500"}`}>

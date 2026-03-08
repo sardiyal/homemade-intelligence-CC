@@ -24,6 +24,7 @@ async def analyze_stream(
     bias_coverage: dict,
     coverage_caveat: str,
     tracker: RunTokenTracker,
+    reasoning_scaffold: str = "",
 ) -> AsyncGenerator[str, None]:
     """Stream Stage 3 analysis tokens via SSE.
 
@@ -37,12 +38,16 @@ async def analyze_stream(
         bias_coverage: Bias label -> source names mapping.
         coverage_caveat: Coverage warning string (empty if OK).
         tracker: Token usage tracker instance.
+        reasoning_scaffold: Pre-computed reasoning scaffold markdown from Stage 2.5.
+                            Injected into the user message as an analytical foundation.
 
     Yields:
         Text delta strings from the streaming response.
     """
     client = get_anthropic_client()
-    messages = build_analysis_messages(topic, source_chunks, past_reports, bias_coverage, coverage_caveat)
+    messages = build_analysis_messages(
+        topic, source_chunks, past_reports, bias_coverage, coverage_caveat, reasoning_scaffold
+    )
     system_blocks = build_system_blocks()
 
     full_text = []
@@ -75,6 +80,7 @@ async def analyze_blocking(
     bias_coverage: dict,
     coverage_caveat: str,
     tracker: RunTokenTracker,
+    reasoning_scaffold: str = "",
 ) -> str:
     """Run Stage 3 analysis without streaming (collects full response).
 
@@ -85,11 +91,14 @@ async def analyze_blocking(
         bias_coverage: Bias label -> source names mapping.
         coverage_caveat: Coverage warning string (empty if OK).
         tracker: Token usage tracker instance.
+        reasoning_scaffold: Pre-computed reasoning scaffold from Stage 2.5.
 
     Returns:
         Full English analysis markdown string.
     """
     chunks = []
-    async for text in analyze_stream(topic, source_chunks, past_reports, bias_coverage, coverage_caveat, tracker):
+    async for text in analyze_stream(
+        topic, source_chunks, past_reports, bias_coverage, coverage_caveat, tracker, reasoning_scaffold
+    ):
         chunks.append(text)
     return "".join(chunks)

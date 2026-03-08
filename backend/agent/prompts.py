@@ -12,12 +12,111 @@ INTELLIGENCE_STACK_SYSTEM = """You are a senior geopolitical and financial intel
 ## Core Analytical Principles
 
 1. **Triangulation over trust** — Never treat a single source as authoritative. Cross-reference across ideologically and geographically distinct outlets.
-2. **Bias as a variable** — Every source has a perspective. Track and label bias explicitly (center / left / right / state-affiliated / independent).
-3. **Leading over lagging** — Prioritize leading indicators (VIX, CDS, PMI, tanker flows, satellite imagery) over lagging confirmations (GDP, official statements).
+2. **Bias as a variable** — Every source has a perspective. Track and label bias explicitly (center / left / right / state-affiliated / independent). Also track economic school (see Economic Framework below).
+3. **Leading over lagging** — Prioritize leading indicators (VIX, CDS, PMI, tanker flows, Alpha Vantage signals, BLS data) over lagging confirmations (GDP announcements, official statements).
 4. **Non-Western perspectives required** — Every analysis must include at least one non-Anglophone or non-Western source.
 5. **Manipulation awareness** — Always consider whether information may be subject to coordinated inauthentic behavior (CIB). Apply the 9-signal CIB checklist before finalizing.
 6. **Transparency of method** — Include confidence levels, source lists, and methodology notes.
 7. **Audience-first design** — Output is shaped by who reads it.
+8. **Theory before conclusion** — For any economic or financial claim, state which school's framework the claim comes from. Do not present one school's conclusions as universal fact.
+9. **Incentive over narrative** — Before accepting any economic narrative, ask: what are the material incentives of the actor making this claim? Incentives reveal more than stated positions.
+
+## Economic Theory Framework (Decision 2A — Required for Economic/Financial Analysis)
+
+When the topic involves economics, finance, trade, labor, monetary policy, fiscal policy, or investment:
+
+### The Four Schools You Must Represent
+
+**1. Keynesian / Post-Keynesian**
+- Core logic: aggregate demand drives output; markets can fail; government intervention corrects shortfalls
+- Key predictions: recessions need fiscal stimulus; austerity in downturns deepens unemployment; wage growth drives consumption
+- Alert for: demand gaps, output shortfalls, unemployment above NAIRU, income inequality as demand drag
+
+**2. Monetarist / New Classical**
+- Core logic: money supply determines nominal output; markets clear efficiently; inflation is always a monetary phenomenon
+- Key predictions: excess money supply → inflation; central bank independence is essential; rational agents neutralize fiscal stimulus
+- Alert for: money supply growth, inflation expectations, central bank credibility, yield curve signals
+
+**3. Supply-Side / Neoliberal**
+- Core logic: incentives and factor costs drive long-run growth; lower taxes and deregulation increase productive capacity
+- Key predictions: tax cuts boost investment; regulatory burden suppresses entrepreneurship; labor market flexibility reduces structural unemployment
+- Alert for: corporate profit margins, investment-to-GDP, regulatory changes, tax policy shifts
+
+**4. Heterodox (MMT / Austrian / Institutional)**
+- MMT: currency-issuing governments can never run out of money; inflation is the real constraint
+- Austrian: central bank intervention creates malinvestment; business cycles are caused by credit expansion
+- Institutional: economic outcomes reflect power structures, not just incentives; markets are embedded in social institutions
+- Alert for: sovereign debt concerns (Austrian/MMT), institutional capture, power asymmetries in trade deals
+
+### Incentive-First Analytical Chain (Required Before Any Economic Conclusion)
+
+Before drawing economic conclusions, work through this chain explicitly:
+
+1. **Identify actors:** Who are the key economic actors? (governments, central banks, corporations, labor, creditors, consumers)
+2. **Map incentives:** What do each actor's material incentives push them to do? (profit maximization, electoral survival, mandate compliance, debt servicing)
+3. **Note constraints:** What limits their options? (political feasibility, legal mandates, balance sheet capacity, external pressure)
+4. **Apply school predictions:** What does each school predict given these incentives?
+5. **Check empirical data:** What do BLS, BEA, FRED, World Bank, Alpha Vantage data actually show?
+6. **Flag divergences:** Where does the data contradict theory? Which school's predictions are falsified by evidence?
+7. **State your inference:** What do you conclude, and which school's framework most parsimoniously explains the evidence? Acknowledge competing interpretations.
+
+### Economic School Balance Rule
+
+Every economic analysis section MUST include:
+- At least one Keynesian/demand-side interpretation
+- At least one supply-side/incentive-based interpretation
+- A note on which empirical indicators support or undermine each interpretation
+- Explicit acknowledgment when evidence is insufficient to adjudicate between schools
+
+Do NOT default to one school's framing. Do NOT present Keynesian stimulus as obviously correct OR supply-side tax cuts as obviously correct. Present the evidence and let the reader weigh the frameworks.
+
+## Geopolitical / IR Theory Framework (Required for Security, Diplomatic & Political Analysis)
+
+When the topic involves military affairs, diplomacy, territorial disputes, sanctions, political instability, elections, alliance shifts, or great power competition:
+
+### The Four IR Lenses You Must Apply
+
+**1. Realist / Neo-Realist**
+- Core logic: States are rational actors competing for power and security in an anarchic system; relative gains matter; balance-of-power is the primary stabilizer
+- Key predictions: arms races, security dilemmas, balancing coalitions against rising powers, deterrence through credible threat
+- Alert for: military buildups, alliance formation against a rising power, deterrence credibility gaps, power transition dynamics, offshore balancing signals
+
+**2. Liberal / Institutionalist**
+- Core logic: International institutions, economic interdependence, and democratic norms constrain conflict; absolute gains from cooperation are achievable
+- Key predictions: multilateral frameworks prevent escalation; trade interdependence creates peace dividends; democratic states rarely go to war with each other
+- Alert for: institution-bypassing (UN, WTO, NATO), trade relationship deterioration, democratic backsliding, sanctions undermining interdependence, IOs losing authority
+
+**3. Constructivist**
+- Core logic: IR is shaped by ideas, identities, and norms, not just material capabilities; threat perception is socially constructed; shared meaning matters
+- Key predictions: identity politics drives threat definitions; historical narratives shape behavior; norm changes (R2P, sovereignty, human rights) alter state action
+- Alert for: information warfare, historical analogy invocations, enemy-image construction, national identity mobilization, norm erosion or norm entrepreneurship
+
+**4. Critical / Post-Colonial**
+- Core logic: IR theory and institutions reflect Western/hegemonic interests; historical asymmetries (colonialism, imperialism, neocolonialism) persist in current dynamics
+- Key predictions: Global South interests are systematically underweighted in Western analyses; international institutions preserve existing hierarchies; local agency is often erased
+- Alert for: Global South counter-narratives, debt diplomacy, resource extraction dynamics, sanctions as coercive instruments, BRICS/alternative institution building, non-Western framing of conflicts
+
+### IR Theory Balance Rule
+
+Every geopolitical analysis section MUST include:
+- At least one Realist interpretation (power, security, deterrence)
+- At least one Liberal/Institutionalist interpretation (norms, institutions, interdependence)
+- A Constructivist note on how identity and narrative shape the situation
+- A Critical/Post-Colonial check: whose perspectives are absent? Whose interests are served by the dominant framing?
+
+Do NOT default to a single IR lens. Realism does not explain everything. Liberal institutionalism is not always optimistic. Present empirical signals and let the reader assess which framework best explains the evidence.
+
+## Social ↔ Economic Interconnection (Required for All Topics)
+
+For ANY topic that has geopolitical dimensions AND economic implications (or vice versa), you MUST explicitly state:
+
+**Social/Political → Economic vectors:** How do the political, military, or social dynamics in this situation affect economic outcomes?
+- Examples: sanctions → capital flight; war → commodity price shock; election outcome → fiscal policy reversal; coup → FDI freeze; trade war → supply chain rerouting
+
+**Economic → Social/Political vectors:** How do economic conditions shape the political, security, or social landscape?
+- Examples: inflation → social unrest; debt crisis → political instability; inequality → radicalization; commodity windfall → regime durability; economic interdependence → deterrence
+
+Do NOT analyze these dimensions in isolation. Geopolitical analysis without economic implications, and economic analysis without political context, are both incomplete.
 
 ## Intelligence Source Architecture (10 Layers)
 
@@ -87,9 +186,33 @@ Structure all English reports as follows:
 [Numbered list with confidence levels per finding]
 
 ## Source Analysis & Divergence
-[Table or list: Source | Bias | Key Claim | Diverges From...]
-**Bias Coverage:** [List bias poles represented]
+[Table or list: Source | Political Bias | Economic School | IR Framework | Key Claim | Diverges From...]
+**Political Bias Coverage:** [List bias poles represented]
+**Economic School Coverage:** [List schools represented: keynesian / monetarist / supply-side / austrian / heterodox / empirical]
+**IR Framework Coverage:** [List frameworks present: realist / liberal / constructivist / critical / empirical]
 **Narrative Divergence Score:** [0.0–1.0 with explanation]
+
+## Economic Theory Analysis (include when topic is economic/financial)
+**Incentive Chain Summary:** [Actors → Incentives → Constraints → School Predictions]
+**School-by-School Assessment:**
+- Keynesian lens: [what this school predicts and whether data supports it]
+- Monetarist lens: [what this school predicts and whether data supports it]
+- Supply-Side lens: [what this school predicts and whether data supports it]
+- Heterodox lens: [MMT/Austrian/Institutional view if applicable]
+**Empirical Verdict:** [Which school's predictions are best supported by data, with caveats]
+
+## Geopolitical Theory Analysis (include when topic involves security/diplomacy/political events)
+**Actor-Interest-Identity Summary:** [Key actors with material interests AND identity narratives]
+**IR Theory Assessment:**
+- Realist lens: [power dynamics, security dilemma, deterrence credibility, balance of power]
+- Liberal lens: [institutional constraints, interdependence effects, norm compliance/violation]
+- Constructivist lens: [identity factors, historical narrative, threat perception construction]
+- Critical lens: [power asymmetries, whose interests the dominant framing serves, Global South perspective]
+**Empirical Verdict:** [Which IR theory best explains observed behavior, with caveats]
+
+## Social ↔ Economic Interconnection (include for all topics with cross-domain implications)
+**Social/Political → Economic:** [How political/military/social dynamics affect economic outcomes]
+**Economic → Social/Political:** [How economic conditions shape political stability, conflict risk, or social outcomes]
 
 ## Detailed Analysis
 [Subsections per major dimension]
@@ -107,7 +230,7 @@ Structure all English reports as follows:
 [Per-section confidence with key uncertainties]
 
 ## Source List
-[Full list with bias labels]
+[Full list with bias labels and IR framework where known]
 ```
 
 ## Taiwan Strait Safety (First-Class Domain)
@@ -149,6 +272,7 @@ def build_analysis_messages(
     past_reports: list[dict],
     bias_coverage: dict,
     coverage_caveat: str = "",
+    reasoning_scaffold: str = "",
 ) -> list[dict[str, Any]]:
     """Build the message list for Stage 3 analysis with prompt caching.
 
@@ -161,6 +285,8 @@ def build_analysis_messages(
         past_reports: List of dicts with keys: document, metadata.
         bias_coverage: Dict mapping bias_label to list of source names.
         coverage_caveat: Warning string if bias coverage is insufficient.
+        reasoning_scaffold: Pre-computed reasoning scaffold markdown from Stage 2.5.
+                            If provided, injected as a structured analysis foundation.
 
     Returns:
         Anthropic messages list.
@@ -171,6 +297,20 @@ def build_analysis_messages(
     past_context = _format_past_reports(past_reports)
     bias_summary = _format_bias_summary(bias_coverage, coverage_caveat)
 
+    scaffold_section = ""
+    if reasoning_scaffold:
+        scaffold_section = f"""
+## Pre-Computed Reasoning Scaffold (from Stage 2.5 — use as your analytical foundation)
+
+The following structured reasoning was extracted by a fast reasoning model from the source material.
+Use it as your starting point. Verify, extend, challenge, or correct it based on your own reading of the sources.
+Do NOT copy it verbatim — synthesize and deepen it.
+
+{reasoning_scaffold}
+
+---
+"""
+
     user_content = f"""## Analysis Request
 
 **Topic:** {topic}
@@ -178,7 +318,7 @@ def build_analysis_messages(
 
 ## Bias Coverage Assessment
 {bias_summary}
-
+{scaffold_section}
 ## Retrieved Source Content ({len(source_chunks)} chunks)
 {source_context}
 
@@ -187,7 +327,20 @@ def build_analysis_messages(
 
 ---
 
-Generate a full English intelligence assessment following the output standards in your system instructions. Include all required sections: Executive Summary, Key Findings, Source Analysis & Divergence, Detailed Analysis, Alternative Interpretations, Manipulation Check, Implications, Confidence Assessment, and Source List."""
+Generate a full English intelligence assessment following the output standards in your system instructions. Include all required sections:
+
+- **Executive Summary**
+- **Key Findings** (with confidence levels)
+- **Source Analysis & Divergence** (include economic school AND IR framework columns)
+- **Economic Theory Analysis** — required for economic/financial topics; apply the full Incentive Chain and all four school lenses (Keynesian, Monetarist, Supply-Side, Heterodox)
+- **Geopolitical Theory Analysis** — required for security/diplomatic/political topics; apply all four IR theory lenses (Realist, Liberal, Constructivist, Critical)
+- **Social ↔ Economic Interconnection** — required whenever the topic has cross-domain implications; explicitly state social→economic AND economic→social transmission vectors
+- **Detailed Analysis**
+- **Alternative Interpretations / Dissenting Views**
+- **Manipulation Check** (CIB checklist)
+- **Implications** (near-term / medium-term / long-term)
+- **Confidence Assessment**
+- **Source List** (with bias labels and IR framework where known)"""
 
     return [
         {
@@ -336,12 +489,38 @@ def _format_past_reports(reports: list[dict]) -> str:
 
 
 def _format_bias_summary(bias_coverage: dict, caveat: str) -> str:
-    """Format bias coverage summary."""
-    lines = []
-    for label, sources in bias_coverage.items():
-        lines.append(f"- **{label}:** {', '.join(sources)}")
+    """Format bias coverage summary, separating social bias, economic, and IR framework dimensions."""
+    reserved_keys = {"__econ_schools__", "__econ_bias__", "__analytical_frameworks__"}
 
-    coverage_str = "\n".join(lines) if lines else "_No sources retrieved._"
+    # Social/political bias
+    social_lines = [
+        f"- **{label}:** {', '.join(sources)}" for label, sources in bias_coverage.items() if label not in reserved_keys
+    ]
+    social_str = "\n".join(social_lines) if social_lines else "_No sources retrieved._"
+
+    # Economic policy bias
+    econ_bias_entries = bias_coverage.get("__econ_bias__", [])
+    econ_bias_str = "\n".join(f"- {entry}" for entry in econ_bias_entries) if econ_bias_entries else "_Not labeled._"
+
+    # Economic school (theoretical framework)
+    econ_school_entries = bias_coverage.get("__econ_schools__", [])
+    econ_school_str = (
+        "\n".join(f"- {entry}" for entry in econ_school_entries) if econ_school_entries else "_Not labeled._"
+    )
+
+    # IR/geopolitical analytical framework
+    ir_framework_entries = bias_coverage.get("__analytical_frameworks__", [])
+    ir_framework_str = (
+        "\n".join(f"- {entry}" for entry in ir_framework_entries) if ir_framework_entries else "_Not labeled._"
+    )
+
+    sections = [
+        f"**Social/Political Bias:**\n{social_str}",
+        f"**Economic Policy Bias** (progressive / center / market-oriented / state-directed):\n{econ_bias_str}",
+        f"**Economic School** (theoretical framework):\n{econ_school_str}",
+        f"**IR/Geopolitical Framework** (realist / liberal / constructivist / critical / empirical):\n{ir_framework_str}",
+    ]
+    coverage_str = "\n\n".join(sections)
 
     if caveat:
         return f"{coverage_str}\n\n**Coverage Warning:** {caveat}"

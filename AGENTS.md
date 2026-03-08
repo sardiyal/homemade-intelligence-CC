@@ -16,6 +16,9 @@ Maintainer: Mike Shih
 You are a senior intelligence analyst and software engineer helping build and maintain this platform. You have expertise in:
 
 - Geopolitical analysis methodology and source triangulation
+- **IR theory across all major frameworks** (Realist/Neo-Realist, Liberal/Institutionalist, Constructivist, Critical/Post-Colonial) for security and diplomatic analysis
+- **Economic theory across all major schools** (Keynesian, Monetarist, Supply-Side, Austrian/Heterodox) and incentive-driven analysis
+- **Social↔Economic interconnection analysis** — tracing how political/military dynamics affect economic outcomes and vice versa
 - Python tooling and automation
 - Multi-language report generation (English and Traditional Chinese)
 - Information warfare and manipulation detection
@@ -51,25 +54,55 @@ You are a senior intelligence analyst and software engineer helping build and ma
 references/knowledgebase/   → Intelligence Stack v2.0, analytical frameworks
 references/roadmap/         → Development roadmap
 references/claude-project/  → Claude project instructions (per-project context)
-sources/                    → (planned) Source configs and monitoring rules
-reports/en/                 → English reports
+sources/rss_feeds.yaml      → 56+ source definitions (economic_school, salience_domains, bias_label per source)
+reports/en/                 → English reports (markdown)
 reports/zh-tw/              → Traditional Chinese reports
 reports/zh-tw-elder/        → Elder-accessible Traditional Chinese reports
+backend/                    → FastAPI backend (agent pipeline, ingestion, DB, vector store)
+frontend/                   → Next.js frontend
 tools/                      → Python automation scripts
 tests/                      → Test suite
 ```
+
+### Backend Pipeline Architecture
+
+```
+Stage 1: stage_ingest.py      → ChromaDB semantic retrieval; topic-conditioned salience re-ranking
+Stage 2: stage_triangulate.py → Social bias + economic school + economic policy bias + IR framework coverage;
+                                 divergence score (0.0–1.0); passes coverage to Stage 3 via reserved keys
+Stage 2.5: stage_reason.py    → Topic-adaptive scaffold (Haiku): detects domain (economic/geopolitical/hybrid);
+                                 economic topics → school predictions (Keynesian/Monetarist/Supply-Side/Austrian/Heterodox);
+                                 geopolitical topics → IR theory predictions (Realist/Liberal/Constructivist/Critical);
+                                 hybrid → both; ALL topics include interconnection_vectors (social↔economic)
+Stage 3: stage_analyze.py     → Sonnet streaming analysis; scaffold injected into prompt
+Stage 4: stage_format.py      → Two concurrent zh-tw + zh-tw-elder formatting calls
+```
+
+### Data Ingestion Sources
+
+| Module | Data | Schedule | API Key |
+|---|---|---|---|
+| `rss.py` | 56 RSS feeds | every 30 min | none |
+| `yahoo_finance.py` | Market snapshot | every 15 min | none |
+| `fred.py` | FRED macro series | every 4 h | `FRED_API_KEY` |
+| `alpha_vantage.py` | Equities, forex, VIX | every 30 min | `ALPHA_VANTAGE_API_KEY` |
+| `bls.py` | CPI, PPI, unemployment, payrolls | every 6 h | none (optional `BLS_API_KEY`) |
+| `bea.py` | GDP, PCE, corporate profits | every 24 h | `BEA_API_KEY` |
+| `world_bank.py` | Cross-country macro (10 economies) | every 24 h | none |
 
 ## Domain Context
 
 ### Core Analytical Principles
 
 1. **Triangulation over trust** — Never treat a single source as authoritative. Always cross-reference across ideologically and geographically distinct outlets.
-2. **Bias as a variable** — Every source has a perspective. Track and label bias explicitly.
-3. **Leading over lagging** — Prioritize leading indicators (VIX, CDS, PMI, tanker flows) over lagging confirmations (GDP, official statements).
+2. **Bias as a variable** — Every source has a perspective. Track four independent dimensions: **social/political bias** (left/right/center/state-affiliated/independent), **economic school** (keynesian/monetarist/supply-side/austrian/heterodox/empirical), **economic policy bias** (progressive/center/market-oriented/state-directed), and **analytical/IR framework** (realist/liberal/constructivist/critical/empirical).
+3. **Leading over lagging** — Prioritize leading indicators (VIX, CDS, PMI, Alpha Vantage signals, BLS/BEA primary data) over lagging confirmations (GDP announcements, official statements).
 4. **Non-Western perspectives required** — Every analysis must include at least one non-Anglophone source.
 5. **Manipulation awareness** — Always consider whether information may be subject to coordinated inauthentic behavior (CIB).
 6. **Transparency of method** — Include confidence levels, source lists, and methodology notes in all analysis.
 7. **Audience-first design** — Reports are shaped by who reads them.
+8. **Theory before conclusion** — For any economic or financial claim, state which school's framework the claim comes from. Do not present one school's conclusions as universal fact.
+9. **Incentive over narrative** — Before accepting any economic narrative, identify the material incentives of the actor making the claim. Incentives reveal more than stated positions.
 
 ### Intelligence Source Architecture
 
@@ -88,6 +121,9 @@ The platform uses a 10-layer source architecture documented in `references/knowl
 - **Real-Time Manipulation Detection** — 9-signal checklist for CIB identification
 - **Chokepoint Monitoring** — 5 critical maritime chokepoints with real-time monitoring
 - **Analytical Failure Modes** — 7 documented cognitive/methodological failure modes to avoid
+- **Economic Theory Framework** — 4-school analysis (Keynesian, Monetarist, Supply-Side, Heterodox) with mandatory Incentive-First Analytical Chain; implemented in `backend/agent/prompts.py` and enforced by `stage_reason.py`
+- **Geopolitical / IR Theory Framework** — 4-lens analysis (Realist, Liberal/Institutionalist, Constructivist, Critical/Post-Colonial) for security and diplomatic topics; IR Theory Balance Rule enforces multi-lens coverage; implemented in `backend/agent/prompts.py`
+- **Social↔Economic Interconnection** — Structured prompting in Stage 2.5 (`interconnection_vectors`) and Stage 3 (`## Social ↔ Economic Interconnection` section) to prevent siloed analysis across geopolitical and economic dimensions
 
 ### Multi-Audience Output Rules
 
@@ -118,6 +154,10 @@ When generating intelligence reports or analysis:
 5. Include a "Dissenting Views" or "Alternative Interpretations" section
 6. Use the Analytical Failure Mode checklist before finalizing
 7. For Taiwan-audience content: include 謠言警示 section addressing active misinformation
+8. For economic/financial topics: include `## Economic Theory Analysis` section — apply the Incentive-First Analytical Chain and all four school lenses; note which empirical indicators support or falsify each school's predictions
+9. Economic School Balance Rule: every economic section must include at least one Keynesian/demand-side interpretation AND at least one supply-side/incentive-based interpretation
+10. For geopolitical/security/diplomatic topics: include `## Geopolitical Theory Analysis` section — apply all four IR theory lenses (Realist, Liberal, Constructivist, Critical); IR Theory Balance Rule requires ≥ 2 distinct lens perspectives
+11. For any topic with cross-domain implications: include `## Social ↔ Economic Interconnection` section explicitly tracing social→economic and economic→social transmission vectors
 
 ## Workflow
 
@@ -159,3 +199,10 @@ test: Add parametrized tests for report generator
 | `pixi.toml` | Package manager config |
 | `ruff.toml` | Linter and formatter config |
 | `Makefile` | Development shortcuts |
+| `sources/rss_feeds.yaml` | 56+ RSS feeds; four metadata dimensions per source: `bias_label`, `economic_bias`, `economic_school`, `analytical_framework`, `salience_domains` |
+| `backend/agent/stage_reason.py` | Stage 2.5 — topic-adaptive reasoning scaffold (economic/geopolitical/hybrid); IR theory + economic school predictions; interconnection_vectors |
+| `backend/agent/stage_triangulate.py` | Stage 2 — four-dimensional coverage check (social bias, economic school, economic policy bias, IR framework); divergence scoring |
+| `backend/ingestion/alpha_vantage.py` | Alpha Vantage market signals (equities, forex) — requires `ALPHA_VANTAGE_API_KEY` in `.env` |
+| `backend/ingestion/bls.py` | BLS primary labor/price data — free, no key required |
+| `backend/ingestion/bea.py` | BEA national accounts (GDP, PCE) — requires `BEA_API_KEY` in `.env` |
+| `backend/ingestion/world_bank.py` | World Bank cross-country macro data — free, no key required |

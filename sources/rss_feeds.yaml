@@ -2,13 +2,42 @@
 # Homemade Intelligence — Source Registry
 # =============================================================================
 # Fields:
-#   name:       Display name
-#   url:        RSS/Atom feed URL
-#   type:       rss / gdelt / manual / api
-#   layer:      Intelligence stack layer 1-10
-#   bias_label: center / left / right / state-affiliated / independent
-#   language:   ISO 639-1 code
-#   is_active:  true / false
+#   name:             Display name
+#   url:              RSS/Atom feed URL
+#   type:             rss / gdelt / manual / api
+#   layer:            Intelligence stack layer 1-10
+#   bias_label:       SOCIAL/POLITICAL bias only (independent of economic stance)
+#                     center / left / center-left / right / center-right /
+#                     state-affiliated / independent
+#   language:         ISO 639-1 code
+#   is_active:        true / false
+#   economic_school:  Theoretical framework (HOW the source reasons about economics)
+#                     neoclassical / keynesian / monetarist / supply-side /
+#                     austrian / institutional / heterodox / empirical / mixed
+#                     (omit for non-economics sources)
+#   economic_bias:    Economic POLICY direction (WHAT policies the source favors)
+#                     progressive     = favors government intervention, redistribution, regulation
+#                     center          = technocratic / pragmatic / data-driven; no systematic lean
+#                     market-oriented = favors free markets, deregulation, low taxes
+#                     state-directed  = state-capitalist systems (China, Russia, Gulf states);
+#                                       orthogonal to the progressive/market-oriented axis
+#   salience_domains: list of domains where this source is most authoritative
+#                     values: geopolitics / markets / energy / taiwan / general
+#   analytical_framework: IR/geopolitical theory framework the source argues from
+#                     realist        = power, national interest, balance of power (Waltz, Mearsheimer)
+#                     liberal        = institutions, norms, interdependence (Keohane, Ikenberry)
+#                     constructivist = ideas, identities, social construction (Wendt, Finnemore)
+#                     critical       = power structures, post-colonialism, hegemony critique
+#                     empirical      = data-driven; no dominant IR theory
+#                     mixed          = deliberately pluralist; multiple frameworks
+#                     (omit for news outlets without a systematic analytical stance)
+#
+# NOTE: bias_label and economic_bias are INDEPENDENT dimensions. A source can be
+# socially centrist but economically market-oriented (e.g. FT, The Economist),
+# or socially left but economically progressive (e.g. Guardian), or socially
+# independent/libertarian but economically market-oriented (e.g. Cato Institute).
+# analytical_framework is a THIRD independent dimension tracking IR/geopolitical
+# theory stance; applies primarily to think tanks and policy institutes.
 # =============================================================================
 
 feeds:
@@ -20,32 +49,44 @@ feeds:
     type: rss
     layer: 1
     bias_label: center
+    economic_bias: center
+    analytical_framework: liberal  # CFR = quintessential liberal internationalism; multilateral order, US-led institutions
     language: en
     is_active: true
+    salience_domains: [geopolitics]
 
   - name: "War on the Rocks"
     url: "https://warontherocks.com/feed/"
     type: rss
     layer: 1
     bias_label: center
+    economic_bias: center
+    analytical_framework: realist  # security studies focus; power politics, military strategy, deterrence
     language: en
     is_active: true
+    salience_domains: [geopolitics]
 
   - name: "Lawfare"
     url: "https://www.lawfaremedia.org/feed"
     type: rss
     layer: 1
-    bias_label: left
+    bias_label: center        # rule-of-law focus; critical of executive overreach across parties
+    economic_bias: center
+    analytical_framework: liberal  # international law, rule of law, institutional norms
     language: en
     is_active: true
+    salience_domains: [geopolitics]
 
   - name: "ISW (Institute for the Study of War)"
     url: "https://www.understandingwar.org/rss.xml"
     type: rss
     layer: 1
     bias_label: center
+    economic_bias: center
+    analytical_framework: empirical  # conflict data and military analysis; descriptive, not theoretically committed
     language: en
     is_active: true
+    salience_domains: [geopolitics]
 
   # ---------------------------------------------------------------------------
   # Layer II — Political News (wire services + broadsheets)
@@ -55,83 +96,244 @@ feeds:
     type: rss
     layer: 2
     bias_label: center
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [geopolitics, markets, general]
 
   - name: "BBC World"
     url: "https://feeds.bbci.co.uk/news/world/rss.xml"
     type: rss
     layer: 2
     bias_label: center
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [geopolitics, general]
 
   - name: "Al Jazeera English"
     url: "https://www.aljazeera.com/xml/rss/all.xml"
     type: rss
     layer: 2
     bias_label: independent
+    economic_bias: progressive    # skeptical of Western-led neoliberal globalization; amplifies Global South critiques
+    analytical_framework: critical  # post-colonial lens; amplifies non-Western agency; challenges Western IR hegemony
     language: en
     is_active: true
+    salience_domains: [geopolitics, general]
 
   - name: "The Guardian World"
     url: "https://www.theguardian.com/world/rss"
     type: rss
     layer: 2
     bias_label: left
+    economic_bias: progressive
     language: en
     is_active: true
+    salience_domains: [geopolitics, general]
 
   - name: "Financial Times"
     url: "https://www.ft.com/rss/home/us"
     type: rss
     layer: 2
-    bias_label: center
+    bias_label: center            # socially centrist; not a partisan social outlet
+    economic_bias: market-oriented  # strongly pro-free-trade, fiscal discipline, globalization
     language: en
     is_active: true
+    economic_school: neoclassical
+    salience_domains: [markets, geopolitics, general]
 
   - name: "South China Morning Post"
     url: "https://www.scmp.com/rss/91/feed"
     type: rss
     layer: 2
     bias_label: center
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [geopolitics, taiwan]
 
   - name: "Nikkei Asia"
     url: "https://asia.nikkei.com/rss/feed/nar"
     type: rss
     layer: 2
     bias_label: center
+    economic_bias: market-oriented  # Japanese business press; pro-corporate, pro-trade
     language: en
     is_active: true
+    salience_domains: [geopolitics, markets]
+
+  - name: "The Economist"
+    url: "https://www.economist.com/finance-and-economics/rss.xml"
+    type: rss
+    layer: 2
+    bias_label: center            # socially liberal on many issues; not a partisan social outlet
+    economic_bias: market-oriented  # free-trade fundamentalist; anti-protectionism; monetarist-leaning
+    language: en
+    is_active: true
+    economic_school: neoclassical
+    salience_domains: [markets, geopolitics]
 
   # ---------------------------------------------------------------------------
-  # Layer III — Economics & Policy
+  # Layer III — Economics & Policy (institutional / centrist / empirical)
   # ---------------------------------------------------------------------------
   - name: "IMF Blog"
     url: "https://www.imf.org/en/Blogs/rss"
     type: rss
     layer: 3
     bias_label: center
+    economic_bias: center         # orthodox but crisis-adaptive; Keynesian in recessions, hawkish in booms
+    analytical_framework: liberal  # multilateral institution; embodies rules-based international economic order
     language: en
     is_active: true
+    economic_school: neoclassical
+    salience_domains: [markets, general]
 
   - name: "Peterson Institute (PIIE)"
     url: "https://www.piie.com/rss/realtime-economic-issues-watch"
     type: rss
     layer: 3
     bias_label: center
+    economic_bias: center         # pro-free-trade but empirically Keynesian; technocratic pragmatist
+    analytical_framework: liberal  # pro-free-trade internationalism; multilateral institution bias
     language: en
     is_active: true
+    economic_school: keynesian
+    salience_domains: [markets, general]
 
   - name: "Brookings Institution"
     url: "https://www.brookings.edu/feed/"
     type: rss
     layer: 3
     bias_label: left
+    economic_bias: progressive
+    analytical_framework: liberal  # multilateralism, international institutions, US-led order
     language: en
     is_active: true
+    economic_school: keynesian
+    salience_domains: [markets, geopolitics]
+
+  - name: "VoxEU (CEPR)"
+    url: "https://cepr.org/vox/rss"
+    type: rss
+    layer: 3
+    bias_label: center
+    economic_bias: center
+    analytical_framework: empirical
+    language: en
+    is_active: true
+    economic_school: empirical
+    salience_domains: [markets, general]
+
+  - name: "World Bank Blogs"
+    url: "https://blogs.worldbank.org/rss.xml"
+    type: rss
+    layer: 3
+    bias_label: center
+    economic_bias: center
+    analytical_framework: liberal  # development through multilateral cooperation; international institution
+    language: en
+    is_active: true
+    economic_school: neoclassical
+    salience_domains: [markets, general]
+
+  - name: "NBER Working Papers"
+    url: "https://www.nber.org/rss/new_working_papers.xml"
+    type: rss
+    layer: 3
+    bias_label: center
+    economic_bias: center         # empirical academic research; no systematic policy lean
+    analytical_framework: empirical
+    language: en
+    is_active: true
+    economic_school: empirical
+    salience_domains: [markets, general]
+
+  - name: "OECD Insights"
+    url: "https://oecdinsights.org/feed/"
+    type: rss
+    layer: 3
+    bias_label: center
+    economic_bias: center
+    analytical_framework: liberal  # multilateral institution; technocratic rules-based international governance
+    language: en
+    is_active: true
+    economic_school: neoclassical
+    salience_domains: [markets, general]
+
+  # ---------------------------------------------------------------------------
+  # Layer III — Economics & Policy (right-leaning / supply-side / austrian)
+  # ---------------------------------------------------------------------------
+  - name: "AEI (American Enterprise Institute)"
+    url: "https://www.aei.org/feed/"
+    type: rss
+    layer: 3
+    bias_label: right             # socially conservative on most issues
+    economic_bias: market-oriented
+    analytical_framework: realist  # neoconservative: US primacy, democracy promotion via power, strong defense
+    language: en
+    is_active: true
+    economic_school: supply-side
+    salience_domains: [markets, geopolitics]
+
+  - name: "Cato Institute"
+    url: "https://www.cato.org/rss/all"
+    type: rss
+    layer: 3
+    bias_label: independent       # socially LIBERTARIAN: pro-civil liberties, pro-immigration,
+                                  # pro-drug legalization — NOT socially conservative
+    economic_bias: market-oriented
+    analytical_framework: liberal  # non-interventionist; classical liberal — against military adventurism
+    language: en
+    is_active: true
+    economic_school: austrian
+    salience_domains: [markets, general]
+
+  - name: "Heritage Foundation"
+    url: "https://www.heritage.org/rss/allresearch.rss"
+    type: rss
+    layer: 3
+    bias_label: right             # socially conservative
+    economic_bias: market-oriented
+    analytical_framework: realist  # US primacy, strong military, national interest-first
+    language: en
+    is_active: true
+    economic_school: supply-side
+    salience_domains: [markets, geopolitics]
+
+  - name: "Hoover Institution"
+    url: "https://www.hoover.org/rss/research"
+    type: rss
+    layer: 3
+    bias_label: right             # socially center-right; Stanford-based, academically credible
+    economic_bias: market-oriented
+    analytical_framework: realist  # conservative realism: US strength, skepticism of multilateral entanglements
+    language: en
+    is_active: true
+    economic_school: monetarist
+    salience_domains: [markets, geopolitics]
+
+  - name: "Marginal Revolution"
+    url: "https://marginalrevolution.com/marginalrevolution/feed"
+    type: rss
+    layer: 3
+    bias_label: center            # Tyler Cowen is socially moderate; not a social conservative
+    economic_bias: market-oriented
+    language: en
+    is_active: true
+    economic_school: neoclassical
+    salience_domains: [markets, general]
+
+  - name: "Econbrowser"
+    url: "https://econbrowser.com/feed"
+    type: rss
+    layer: 3
+    bias_label: center
+    economic_bias: center
+    language: en
+    is_active: true
+    economic_school: empirical
+    salience_domains: [markets, general]
 
   # ---------------------------------------------------------------------------
   # Layer IV — Energy, Commodities & Chokepoints
@@ -141,78 +343,218 @@ feeds:
     type: rss
     layer: 4
     bias_label: center
+    economic_bias: center
     language: en
     is_active: true
+    economic_school: empirical
+    salience_domains: [energy]
 
   - name: "Oil Price.com"
     url: "https://oilprice.com/rss/main"
     type: rss
     layer: 4
     bias_label: center
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [energy, markets]
 
   # ---------------------------------------------------------------------------
-  # Layer V — Non-Western & Regional Perspectives
+  # Layer V — Non-Western & Regional Perspectives (original)
   # ---------------------------------------------------------------------------
   - name: "Global Times (China, state-affiliated)"
     url: "https://www.globaltimes.cn/rss/outbrain.xml"
     type: rss
     layer: 5
     bias_label: state-affiliated
+    economic_bias: state-directed   # CCP-managed mixed economy; not on the Western progressive/market axis
     language: en
     is_active: true
+    salience_domains: [geopolitics, taiwan]
 
   - name: "TASS English (Russia, state-affiliated)"
     url: "https://tass.com/rss/v2.xml"
     type: rss
     layer: 5
     bias_label: state-affiliated
+    economic_bias: state-directed   # Russian state-managed economy; different axis entirely
     language: en
     is_active: true
+    salience_domains: [geopolitics, energy]
 
   - name: "Al-Monitor Middle East"
     url: "https://www.al-monitor.com/rss"
     type: rss
     layer: 5
     bias_label: independent
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [geopolitics, energy]
 
   - name: "The Hindu (India)"
     url: "https://www.thehindu.com/feeder/default.rss"
     type: rss
     layer: 5
     bias_label: center
+    economic_bias: progressive      # Nehruvian mixed-economy tradition; historically skeptical of rapid liberalization
+    analytical_framework: critical  # Non-Aligned Movement tradition; post-colonial; skeptical of US/Western hegemony
     language: en
     is_active: true
+    salience_domains: [geopolitics]
 
   - name: "Deutsche Welle (Germany)"
     url: "https://rss.dw.com/rdf/rss-en-world"
     type: rss
     layer: 5
     bias_label: center
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [geopolitics, general]
 
   - name: "Radio Free Asia (Taiwan/China)"
     url: "https://www.rfa.org/english/rss2.xml"
     type: rss
     layer: 5
     bias_label: independent
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [taiwan, geopolitics]
 
   # ---------------------------------------------------------------------------
-  # Layer VI — Financial Markets
+  # Layer V — Non-Western & Regional Perspectives (new — 3A expansion)
+  # ---------------------------------------------------------------------------
+  - name: "Japan Times"
+    url: "https://www.japantimes.co.jp/feed/"
+    type: rss
+    layer: 5
+    bias_label: center
+    economic_bias: center
+    language: en
+    is_active: true
+    salience_domains: [geopolitics, markets]
+
+  - name: "Korea Herald"
+    url: "https://www.koreaherald.com/rss/all.xml"
+    type: rss
+    layer: 5
+    bias_label: center
+    economic_bias: center
+    language: en
+    is_active: true
+    salience_domains: [geopolitics, markets]
+
+  - name: "Dawn (Pakistan)"
+    url: "https://www.dawn.com/feeds/home"
+    type: rss
+    layer: 5
+    bias_label: center
+    economic_bias: center
+    language: en
+    is_active: true
+    salience_domains: [geopolitics]
+
+  - name: "Arab News (Saudi Arabia)"
+    url: "https://www.arabnews.com/rss.xml"
+    type: rss
+    layer: 5
+    bias_label: center
+    economic_bias: state-directed   # Saudi state-capitalist rentier model; not on the Western progressive/market axis
+    language: en
+    is_active: true
+    salience_domains: [geopolitics, energy]
+
+  - name: "Rappler (Philippines)"
+    url: "https://www.rappler.com/section/world/feed/"
+    type: rss
+    layer: 5
+    bias_label: independent
+    economic_bias: progressive      # reformist, pro-democracy; critical of oligarchic economic concentration
+    analytical_framework: liberal   # democracy, rule of law, human rights; anti-authoritarian framing
+    language: en
+    is_active: true
+    salience_domains: [geopolitics]
+
+  - name: "Straits Times (Singapore)"
+    url: "https://www.straitstimes.com/news/world/rss.xml"
+    type: rss
+    layer: 5
+    bias_label: center
+    economic_bias: state-directed   # Singapore's unique state-guided capitalism (SWF, state-owned enterprises,
+                                    # explicit industrial policy) — pro-business but with strong state direction
+    language: en
+    is_active: true
+    salience_domains: [geopolitics, markets]
+
+  - name: "China Dialogue (China-environment)"
+    url: "https://chinadialogue.net/en/feed/"
+    type: rss
+    layer: 5
+    bias_label: independent
+    economic_bias: progressive      # environment-focused; critical of growth-at-all-costs economics
+    language: en
+    is_active: true
+    salience_domains: [geopolitics, energy]
+
+  - name: "Caixin Global (China business)"
+    url: "https://www.caixinglobal.com/rss/en_business.xml"
+    type: rss
+    layer: 5
+    bias_label: center
+    economic_bias: market-oriented  # pro-market reform within China's mixed system
+    language: en
+    is_active: true
+    economic_school: empirical
+    salience_domains: [markets, geopolitics]
+
+  # ---------------------------------------------------------------------------
+  # Layer VI — Financial Markets (expanded)
   # ---------------------------------------------------------------------------
   - name: "Bloomberg Markets (via Yahoo Finance proxy)"
     url: "https://finance.yahoo.com/news/rssindex"
     type: rss
     layer: 6
     bias_label: center
+    economic_bias: market-oriented  # financial press; pro-market framing is implicit
     language: en
     is_active: true
+    economic_school: neoclassical
+    salience_domains: [markets]
+
+  - name: "MarketWatch"
+    url: "https://feeds.marketwatch.com/marketwatch/topstories/"
+    type: rss
+    layer: 6
+    bias_label: center
+    economic_bias: center
+    language: en
+    is_active: true
+    economic_school: empirical
+    salience_domains: [markets]
+
+  - name: "Reuters Finance"
+    url: "https://feeds.reuters.com/reuters/businessNews"
+    type: rss
+    layer: 6
+    bias_label: center
+    economic_bias: center
+    language: en
+    is_active: true
+    economic_school: empirical
+    salience_domains: [markets, general]
+
+  - name: "Seeking Alpha (markets commentary)"
+    url: "https://seekingalpha.com/market_currents.xml"
+    type: rss
+    layer: 6
+    bias_label: center
+    economic_bias: market-oriented  # investment analysis; pro-market framing is inherent to the audience
+    language: en
+    is_active: true
+    economic_school: mixed
+    salience_domains: [markets]
 
   # ---------------------------------------------------------------------------
   # Layer VII — Taiwan-Specific Sources
@@ -222,21 +564,27 @@ feeds:
     type: rss
     layer: 7
     bias_label: independent
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [taiwan, geopolitics]
 
   - name: "Taiwan News"
     url: "https://www.taiwannews.com.tw/rss/index.rss"
     type: rss
     layer: 7
     bias_label: independent
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [taiwan, geopolitics]
 
   - name: "Focus Taiwan (CNA English)"
     url: "https://focustaiwan.tw/rss/aall.xml"
     type: rss
     layer: 7
     bias_label: center
+    economic_bias: center
     language: en
     is_active: true
+    salience_domains: [taiwan, geopolitics]

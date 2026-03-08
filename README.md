@@ -1,16 +1,17 @@
 # Homemade Intelligence
 
-A personal, bias-aware geopolitical intelligence platform. Ingests from 25+ RSS feeds across ideologically diverse sources, triangulates narratives, and generates analysis reports in three audience formats via Claude — all running locally.
+A personal, bias-aware geopolitical intelligence platform. Ingests from 56+ RSS feeds and primary economic data sources across ideologically diverse outlets, triangulates narratives across four independent bias dimensions, and generates theory-grounded analysis reports in three audience formats via Claude — all running locally.
 
 ---
 
 ## What It Does
 
-1. **Ingests** from RSS feeds, GDELT, Yahoo Finance, and FRED in the background (or via manual text/URL injection)
-2. **Triangulates** sources by bias label — enforces minimum coverage across poles, scores narrative divergence
-3. **Analyzes** via Claude with a cached system prompt (~7,400 tokens, ~90% cost reduction on repeat calls)
-4. **Formats** concurrently into three audiences: English · 繁體中文 · 長輩版 (elder-accessible TC with 🟢🟡🔴 risk indicators)
-5. **Tracks predictions** with Brier scoring and calibration curves against Metaculus/Polymarket reference odds
+1. **Ingests** from 56+ RSS feeds, GDELT, Yahoo Finance, FRED, Alpha Vantage, BLS, BEA, and World Bank in the background (or via manual text/URL injection)
+2. **Triangulates** sources across four independent bias dimensions — social/political bias, economic school (Keynesian/Monetarist/Supply-Side/Heterodox), economic policy bias (progressive/market-oriented), and IR/geopolitical framework (Realist/Liberal/Constructivist/Critical) — then scores narrative divergence (0.0–1.0)
+3. **Reasons** via a topic-adaptive Stage 2.5 scaffold: detects topic domain (economic/geopolitical/hybrid) and generates IR theory or economic school predictions plus social↔economic interconnection vectors before the main analysis call
+4. **Analyzes** via Claude with a cached system prompt (~7,400 tokens, ~90% cost reduction on repeat calls)
+5. **Formats** concurrently into three audiences: English · 繁體中文 · 長輩版 (elder-accessible TC with 🟢🟡🔴 risk indicators)
+6. **Tracks predictions** with Brier scoring and calibration curves against Metaculus/Polymarket reference odds
 
 ---
 
@@ -20,8 +21,8 @@ A personal, bias-aware geopolitical intelligence platform. Ingests from 25+ RSS 
 |---|---|
 | Backend | FastAPI · SQLite · SQLAlchemy · ChromaDB |
 | LLM | Anthropic Claude (`claude-sonnet-4-6`) with prompt caching |
-| Ingestion | feedparser · GDELT v2 · yfinance · fredapi · trafilatura |
-| Scheduling | APScheduler (RSS every 30 min, FRED every 4 h) |
+| Ingestion | feedparser · GDELT v2 · yfinance · fredapi · Alpha Vantage · BLS · BEA · World Bank · trafilatura |
+| Scheduling | APScheduler (RSS every 30 min, Alpha Vantage every 30 min, FRED every 4 h, BLS/World Bank every 6–24 h) |
 | Frontend | Next.js 16 (App Router) · TypeScript · Tailwind CSS · Recharts |
 | Package manager | Pixi (conda-forge) |
 
@@ -89,18 +90,23 @@ homemade-intelligence/
 │   ├── vector_store/
 │   │   └── chroma.py               # ChromaDB client; collections: sources + reports
 │   ├── ingestion/
-│   │   ├── rss.py                  # feedparser RSS poller
+│   │   ├── rss.py                  # feedparser RSS poller (56+ feeds)
 │   │   ├── gdelt.py                # GDELT v2 keyword query
 │   │   ├── yahoo_finance.py        # yfinance market snapshot
 │   │   ├── fred.py                 # FRED economic indicators
+│   │   ├── alpha_vantage.py        # Alpha Vantage equities, forex, VIX (ALPHA_VANTAGE_API_KEY)
+│   │   ├── bls.py                  # BLS CPI, PPI, unemployment, payrolls
+│   │   ├── bea.py                  # BEA GDP, PCE, corporate profits (BEA_API_KEY)
+│   │   ├── world_bank.py           # World Bank cross-country macro (10 economies)
 │   │   ├── manual.py               # Raw text + URL (trafilatura) injection
 │   │   ├── dedup.py                # SHA-256 content deduplication
 │   │   └── scheduler.py            # APScheduler background jobs
 │   ├── agent/
 │   │   ├── pipeline.py             # Orchestration; asyncio.Task + Queue (survives client disconnect)
-│   │   ├── prompts.py              # INTELLIGENCE_STACK_SYSTEM + cache_control blocks
-│   │   ├── stage_ingest.py         # Stage 1: ChromaDB semantic retrieval
-│   │   ├── stage_triangulate.py    # Stage 2: bias coverage + divergence score
+│   │   ├── prompts.py              # INTELLIGENCE_STACK_SYSTEM + IR theory/economic frameworks + cache_control
+│   │   ├── stage_ingest.py         # Stage 1: ChromaDB semantic retrieval + salience re-ranking
+│   │   ├── stage_triangulate.py    # Stage 2: four-dimensional bias coverage + divergence score
+│   │   ├── stage_reason.py         # Stage 2.5: topic-adaptive scaffold (economic/geopolitical/hybrid)
 │   │   ├── stage_analyze.py        # Stage 3: streaming English analysis
 │   │   ├── stage_format.py         # Stage 4: concurrent TC general + elder formatting
 │   │   └── token_tracker.py        # Per-stage token/cost logging
@@ -127,7 +133,7 @@ homemade-intelligence/
 │       ├── performance/            # BrierScoreChart, CalibrationCurve
 │       └── sources/                # ManualInjectPanel
 ├── sources/
-│   └── rss_feeds.yaml              # 25 feeds: Reuters, BBC, Al Jazeera, TASS, Global Times, Focus Taiwan, EIA, …
+│   └── rss_feeds.yaml              # 56+ feeds; four metadata dimensions per source: bias_label, economic_bias, economic_school, analytical_framework
 ├── docs/
 │   ├── methodology.md              # Vision, analytical principles, source architecture, audience standards
 │   └── adr/                        # Architecture Decision Records (MADR format)
@@ -204,6 +210,9 @@ All settings are read from `.env` (copy from `.env.example`):
 |---|---|---|
 | `ANTHROPIC_API_KEY` | — | Required for report generation |
 | `FRED_API_KEY` | — | Optional; enables FRED economic indicators |
+| `ALPHA_VANTAGE_API_KEY` | — | Optional; enables equities, forex, VIX signals |
+| `BEA_API_KEY` | — | Optional; enables BEA GDP/PCE national accounts |
+| `BLS_API_KEY` | — | Optional; higher BLS rate limit (free without key) |
 | `DATABASE_URL` | `sqlite:///./data/homemade_intelligence.db` | SQLite path |
 | `CHROMA_PERSIST_DIR` | `./data/chroma` | ChromaDB persistence directory |
 | `FRONTEND_URL` | `http://localhost:3000` | CORS origin |

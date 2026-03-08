@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from backend.config import settings
-from backend.vector_store.chroma import query_reports, query_sources
+from backend.vector_store.chroma import query_reports, query_sources, query_sources_with_salience
 
 logger = logging.getLogger(__name__)
 
@@ -14,15 +14,22 @@ logger = logging.getLogger(__name__)
 def retrieve_relevant_content(
     topic: str,
     db: Session,
+    domain: str = "",
     trigger_fresh_ingest: bool = True,
 ) -> tuple[list[dict], list[dict]]:
     """Retrieve semantically relevant source chunks and past reports.
+
+    Uses topic-conditioned salience re-ranking (Decision 3B) when a domain is provided:
+    sources tagged with matching salience_domains get a distance boost in the ranking,
+    so that e.g. a 'markets' query promotes financial sources without excluding geopolitics.
 
     Triggers fresh RSS ingestion if last ingest was more than 30 minutes ago.
 
     Args:
         topic: The analysis topic string.
         db: SQLAlchemy session.
+        domain: Report domain for salience re-ranking ('markets', 'energy', 'taiwan', etc.).
+                Pass empty string to use plain semantic search without salience.
         trigger_fresh_ingest: Whether to auto-trigger ingestion if stale.
 
     Returns:
@@ -31,7 +38,12 @@ def retrieve_relevant_content(
     if trigger_fresh_ingest:
         _maybe_trigger_ingestion(db)
 
-    source_chunks = query_sources(topic, n_results=settings.max_source_chunks)
+    if domain:
+        source_chunks = query_sources_with_salience(topic, domain=domain, n_results=settings.max_source_chunks)
+        logger.info("Stage 1: using salience-aware retrieval for domain='%s'", domain)
+    else:
+        source_chunks = query_sources(topic, n_results=settings.max_source_chunks)
+
     past_reports = query_reports(topic, n_results=settings.max_past_reports)
 
     logger.info(

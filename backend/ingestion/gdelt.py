@@ -27,10 +27,18 @@ def _ensure_gdelt_source(db: Session) -> Source:
             bias_label="center",
             language="en",
             is_active=True,
+            economic_school="unlabeled",
+            economic_bias="center",
+            salience_domains="geopolitics,general",
         )
         db.add(source)
         db.commit()
         db.refresh(source)
+    elif not source.economic_school:
+        source.economic_school = "unlabeled"
+        source.economic_bias = "center"
+        source.salience_domains = "geopolitics,general"
+        db.commit()
     return source
 
 
@@ -103,6 +111,9 @@ def query_gdelt(keyword: str, max_records: int = 10, db: Session = None) -> int:
                 "bias_label": "center",
                 "language": "en",
                 "layer": 2,
+                "economic_school": "unlabeled",
+                "economic_bias": "center",
+                "salience_domains": "geopolitics,general",
                 "url": url,
                 "ingested_content_id": content.id,
             },

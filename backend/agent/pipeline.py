@@ -15,6 +15,7 @@ from backend.agent.report_exporter import embed_report_summary, export_report_to
 from backend.agent.stage_analyze import analyze_blocking, analyze_stream
 from backend.agent.stage_format import format_all_audiences
 from backend.agent.stage_ingest import check_reuse_guard, retrieve_relevant_content
+from backend.agent.stage_reason import build_reasoning_scaffold, format_scaffold_for_prompt
 from backend.agent.stage_triangulate import triangulate_sources
 from backend.agent.token_tracker import RunTokenTracker
 from backend.database.models import Report
@@ -104,17 +105,21 @@ async def _run_pipeline(
                 await emit("warning", {"message": f"Similar report exists (similarity={similarity:.2f}). Continuing."})
 
             await emit("status", {"stage": "ingest"})
-            source_chunks, past_reports = retrieve_relevant_content(topic, db)
+            source_chunks, past_reports = retrieve_relevant_content(topic, db, domain=domain)
 
             await emit("status", {"stage": "triangulate"})
             bias_coverage, coverage_caveat, divergence_score = triangulate_sources(source_chunks)
             if coverage_caveat:
                 await emit("warning", {"message": coverage_caveat})
 
+            await emit("status", {"stage": "reason"})
+            scaffold = build_reasoning_scaffold(topic, source_chunks, tracker)
+            reasoning_scaffold = format_scaffold_for_prompt(scaffold)
+
             await emit("status", {"stage": "analyze"})
             analysis_chunks: list[str] = []
             async for text in analyze_stream(
-                topic, source_chunks, past_reports, bias_coverage, coverage_caveat, tracker
+                topic, source_chunks, past_reports, bias_coverage, coverage_caveat, tracker, reasoning_scaffold
             ):
                 analysis_chunks.append(text)
                 await emit("token", {"text": text})
@@ -223,11 +228,14 @@ async def run_pipeline_blocking(
             if manual_text:
                 _inject_manual_content(manual_title or topic, manual_text, db)
 
-            source_chunks, past_reports = retrieve_relevant_content(topic, db)
+            source_chunks, past_reports = retrieve_relevant_content(topic, db, domain=domain)
             bias_coverage, coverage_caveat, divergence_score = triangulate_sources(source_chunks)
 
+            scaffold = build_reasoning_scaffold(topic, source_chunks, tracker)
+            reasoning_scaffold = format_scaffold_for_prompt(scaffold)
+
             content_en = await analyze_blocking(
-                topic, source_chunks, past_reports, bias_coverage, coverage_caveat, tracker
+                topic, source_chunks, past_reports, bias_coverage, coverage_caveat, tracker, reasoning_scaffold
             )
             content_zh_tw, content_zh_tw_elder = await format_all_audiences(content_en, topic, tracker)
 
