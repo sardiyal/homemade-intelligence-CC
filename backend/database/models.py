@@ -1,7 +1,5 @@
 """SQLAlchemy ORM models for all 5 database tables."""
 
-from datetime import datetime
-
 from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, Text, func
 from sqlalchemy.orm import relationship
 

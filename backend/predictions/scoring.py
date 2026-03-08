@@ -39,7 +39,7 @@ def compute_brier_score(forecast: float, outcome_binary: float) -> float:
     Brier score = (forecast - outcome)^2. Range: 0.0 (perfect) to 1.0 (worst).
 
     Args:
-        forecast: Probability forecast as decimal (0.0–1.0).
+        forecast: Probability forecast as decimal (0.0-1.0).
         outcome_binary: Actual outcome as 1.0, 0.0, or 0.5.
 
     Returns:
@@ -96,11 +96,7 @@ def compute_brier_by_domain(db: Session) -> list[dict]:
     """
     from backend.database.models import Prediction
 
-    rows = (
-        db.query(PredictionOutcome, Prediction.domain)
-        .join(Prediction)
-        .all()
-    )
+    rows = db.query(PredictionOutcome, Prediction.domain).join(Prediction).all()
 
     by_domain: dict[str, list[float]] = defaultdict(list)
     by_domain_outcomes: dict[str, list[float]] = defaultdict(list)
@@ -116,12 +112,14 @@ def compute_brier_by_domain(db: Session) -> list[dict]:
         mean_outcome = sum(by_domain_outcomes[dom]) / len(by_domain_outcomes[dom])
         baseline_brier = (0.5 - mean_outcome) ** 2
         skill = 1.0 - (mean_brier / baseline_brier) if baseline_brier > 0 else None
-        results.append({
-            "domain": dom,
-            "count": len(scores),
-            "mean_brier": round(mean_brier, 4),
-            "skill_score": round(skill, 4) if skill is not None else None,
-        })
+        results.append(
+            {
+                "domain": dom,
+                "count": len(scores),
+                "mean_brier": round(mean_brier, 4),
+                "skill_score": round(skill, 4) if skill is not None else None,
+            }
+        )
 
     return sorted(results, key=lambda x: x["mean_brier"])
 
@@ -154,11 +152,13 @@ def compute_calibration_curve(db: Session, n_bins: int = 10) -> list[dict]:
         bin_outcomes = bins[i]
         mean_forecast = sum(o.forecast for o in bin_outcomes) / len(bin_outcomes)
         actual_freq = sum(o.outcome_binary for o in bin_outcomes) / len(bin_outcomes)
-        result.append({
-            "bin_center": round((i + 0.5) * bin_size, 2),
-            "mean_forecast": round(mean_forecast, 4),
-            "actual_frequency": round(actual_freq, 4),
-            "count": len(bin_outcomes),
-        })
+        result.append(
+            {
+                "bin_center": round((i + 0.5) * bin_size, 2),
+                "mean_forecast": round(mean_forecast, 4),
+                "actual_frequency": round(actual_freq, 4),
+                "count": len(bin_outcomes),
+            }
+        )
 
     return result

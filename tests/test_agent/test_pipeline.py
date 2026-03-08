@@ -1,7 +1,5 @@
 """Tests for agent pipeline stages with mocked Anthropic client."""
 
-import pytest
-
 from backend.agent.stage_triangulate import triangulate_sources
 
 
@@ -23,13 +21,13 @@ def _make_chunk(source_name: str, bias_label: str, language: str = "en", layer: 
 
 class TestTriangulate:
     def test_empty_chunks_returns_zero_divergence(self):
-        bias_coverage, caveat, score = triangulate_sources([])
+        _, caveat, score = triangulate_sources([])
         assert score == 0.0
         assert "non-Anglophone" in caveat or caveat == "" or "Anglophone" in caveat
 
     def test_single_source_low_divergence(self):
         chunks = [_make_chunk("Reuters", "center")]
-        bias_coverage, caveat, score = triangulate_sources(chunks)
+        _, _, score = triangulate_sources(chunks)
         assert score < 0.4
 
     def test_left_right_sources_higher_divergence(self):
@@ -37,7 +35,7 @@ class TestTriangulate:
             _make_chunk("Guardian", "left"),
             _make_chunk("Fox News", "right"),
         ]
-        bias_coverage, caveat, score = triangulate_sources(chunks)
+        _, _, score = triangulate_sources(chunks)
         assert score >= 0.4
 
     def test_non_anglophone_bonus(self):

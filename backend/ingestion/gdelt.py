@@ -1,8 +1,7 @@
 """GDELT v2 keyword query ingestion."""
 
 import logging
-from datetime import datetime, timezone
-from urllib.parse import quote_plus
+from datetime import UTC, datetime
 
 import httpx
 from sqlalchemy.orm import Session
@@ -88,7 +87,7 @@ def query_gdelt(keyword: str, max_records: int = 10, db: Session = None) -> int:
             url=url,
             title=title,
             body=body,
-            published_at=datetime.now(timezone.utc),
+            published_at=datetime.now(UTC),
             is_manual=False,
             chroma_doc_id=doc_id,
         )

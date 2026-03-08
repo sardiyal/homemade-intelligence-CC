@@ -1,6 +1,6 @@
 """Pydantic schemas for ingestion endpoints."""
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
 
 class InjectTextRequest(BaseModel):

@@ -314,10 +314,7 @@ def _format_source_chunks(chunks: list[dict]) -> str:
         url = meta.get("url", "")
         text = chunk.get("document", "")[:800]
 
-        parts.append(
-            f"### Source {i}: {source_name} [bias: {bias}, lang: {lang}]\n"
-            f"URL: {url}\n\n{text}\n"
-        )
+        parts.append(f"### Source {i}: {source_name} [bias: {bias}, lang: {lang}]\nURL: {url}\n\n{text}\n")
 
     return "\n".join(parts)
 
@@ -356,3 +353,204 @@ def _get_today() -> str:
     from datetime import date
 
     return date.today().isoformat()
+
+
+# ---------------------------------------------------------------------------
+# Consolidated Top-10 report prompts
+# ---------------------------------------------------------------------------
+
+
+def _format_topics_list(topics: list[dict]) -> str:
+    """Format identified topics for inclusion in the consolidated prompt."""
+    parts = []
+    for i, t in enumerate(topics, 1):
+        parts.append(f"{i}. **{t['topic']}** (domain: {t['domain']})\n   Rationale: {t.get('rationale', '')}")
+    return "\n".join(parts)
+
+
+def build_consolidated_analysis_messages(
+    topics: list[dict],
+    source_chunks: list[dict],
+    past_reports: list[dict],
+    bias_coverage: dict,
+    coverage_caveat: str = "",
+) -> list[dict[str, Any]]:
+    """Build messages for a consolidated multi-topic intelligence briefing.
+
+    The English version focuses on what matters to a US-based audience:
+    economic impact on US markets, US foreign policy implications, and
+    impact on American interests.
+
+    Args:
+        topics: List of dicts with keys: topic, domain, rationale.
+        source_chunks: Combined source chunks across all topics.
+        past_reports: Combined past reports across all topics.
+        bias_coverage: Bias label -> source names mapping.
+        coverage_caveat: Warning string if bias coverage is insufficient.
+
+    Returns:
+        Anthropic messages list.
+    """
+    today_str = _get_today()
+    topics_text = _format_topics_list(topics)
+    source_context = _format_source_chunks(source_chunks)
+    past_context = _format_past_reports(past_reports)
+    bias_summary = _format_bias_summary(bias_coverage, coverage_caveat)
+
+    user_content = f"""## Consolidated Intelligence Briefing Request
+
+**Date:** {today_str}
+**Audience:** US-based readers (focus on American interests, US markets, US foreign policy)
+
+## Top {len(topics)} Topics Identified
+
+{topics_text}
+
+## Bias Coverage Assessment
+{bias_summary}
+
+## Retrieved Source Content ({len(source_chunks)} chunks)
+{source_context}
+
+## Related Past Reports ({len(past_reports)} found)
+{past_context}
+
+---
+
+Generate a consolidated intelligence briefing covering ALL {len(topics)} topics above. This is a single report, not {len(topics)} separate reports.
+
+**Report structure:**
+
+Start with a brief Executive Summary (5-8 sentences covering the most critical developments across all topics).
+
+Then for EACH topic, use this structure:
+
+## Topic N: [Concise Title]
+**Domain:** [domain] | **Confidence:** [HIGH/MEDIUM/LOW]
+
+### Background - How We Got Here
+2-3 paragraphs of historical context explaining the situation.
+
+### Recent Significant Changes
+What happened in the last 48 hours that made this topic important. Be specific with dates, actors, and actions.
+
+### Future Implications
+Near-term (48h) and medium-term (2-4 weeks) implications. Focus on impact to US interests: markets, foreign policy, trade, security.
+
+---
+
+End with:
+## Source List
+Full list with bias labels.
+
+## Manipulation Check
+Any CIB signals detected across the topics.
+
+Keep analysis rigorous, cite sources, include confidence levels. Focus implications on what matters to people in the United States."""
+
+    return [
+        {
+            "role": "user",
+            "content": [{"type": "text", "text": user_content}],
+        }
+    ]
+
+
+def build_consolidated_zh_tw_messages(
+    base_analysis: str,
+    topics: list[dict],
+) -> tuple[str, list[dict[str, Any]]]:
+    """Build messages for consolidated TC formatting covering both US and Taiwan perspectives.
+
+    Args:
+        base_analysis: English consolidated analysis.
+        topics: List of topic dicts for context.
+
+    Returns:
+        Tuple of (system_prompt, messages).
+    """
+    topics_text = _format_topics_list(topics)
+    system = (
+        "你是一位資深國際情勢分析師，專門為台灣一般民眾撰寫綜合情資報告。"
+        "你的報告同時涵蓋美國觀點與台灣觀點，讓讀者理解全球局勢對兩地的影響。"
+        "使用繁體中文，遵循台灣用語標準。不得使用簡體字。"
+    )
+
+    messages = [
+        {
+            "role": "user",
+            "content": f"""請將以下英文綜合情資報告改寫為繁體中文版本。此報告需同時涵蓋美國與台灣觀點。
+
+**涵蓋主題：**
+{topics_text}
+
+**原始英文報告：**
+{base_analysis}
+
+改寫要求：
+1. 使用台灣繁體中文標準用語
+2. 保留原報告的「背景」「近期重大變化」「未來影響」三段式結構
+3. 每個主題的「未來影響」段落必須同時說明：
+   - 對美國的影響（經濟、外交、安全）
+   - 對台灣的影響（經濟、兩岸關係、民生）
+4. 保留所有信心等級標註（高/中/低）
+5. 標注各來源的立場差異
+6. 格式：Markdown，結構清晰
+
+請生成完整繁體中文報告：""",
+        }
+    ]
+    return system, messages
+
+
+def build_consolidated_zh_tw_elder_messages(
+    base_analysis: str,
+    topics: list[dict],
+) -> tuple[str, list[dict[str, Any]]]:
+    """Build messages for consolidated elder-friendly TC formatting focused on Taiwan.
+
+    Args:
+        base_analysis: English consolidated analysis.
+        topics: List of topic dicts for context.
+
+    Returns:
+        Tuple of (system_prompt, messages).
+    """
+    topics_text = _format_topics_list(topics)
+    system = (
+        "你是一位體貼的情資分析師，專門為台灣長輩（65歲以上）撰寫淺顯易懂的國際情報摘要。"
+        "你的重點是：這些國際大事對台灣人的生活有什麼影響？"
+        "使用繁體中文，句子簡短（每句不超過20字），專業術語加括號解釋。"
+        "使用交通號誌圖示標示風險：🟢 安全 / 🟡 注意 / 🔴 警戒。"
+        "語氣親切溫暖，如同家人在解說新聞。適合用LINE分享或朗讀。"
+    )
+
+    messages = [
+        {
+            "role": "user",
+            "content": f"""請將以下英文綜合情資報告改寫為台灣長輩版繁體中文。
+重點放在：這些國際大事跟台灣人有什麼關係？對我們的生活有什麼影響？
+
+**涵蓋主題：**
+{topics_text}
+
+**原始英文報告（供參考）：**
+{base_analysis}
+
+長輩版要求：
+1. 每句不超過20字，段落簡短
+2. 專業名詞加括號說明，例如：通貨膨脹（物價上漲）
+3. 每個主題用風險號誌標示：🟢 安全 / 🟡 需要注意 / 🔴 要小心
+4. 每個主題的結構：
+   - 簡單說明發生什麼事
+   - 最近有什麼變化
+   - 跟台灣有什麼關係（物價、安全、工作、生活）
+5. 必須包含「謠言警示」段落，澄清可能流傳的假訊息
+6. 語氣親切，如同家人說明
+7. 避免複雜表格，用條列式
+8. 不需要美國觀點的細節，專注台灣觀點
+
+請生成完整長輩版報告：""",
+        }
+    ]
+    return system, messages

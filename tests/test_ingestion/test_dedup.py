@@ -1,5 +1,7 @@
 """Tests for content deduplication."""
 
+from datetime import UTC
+
 import pytest
 
 from backend.ingestion.dedup import compute_content_hash, is_duplicate
@@ -37,7 +39,7 @@ def test_is_duplicate_returns_false_for_new_content(db):
 
 
 def test_is_duplicate_returns_true_after_insert(db):
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from backend.database.models import IngestedContent
 
@@ -46,7 +48,7 @@ def test_is_duplicate_returns_true_after_insert(db):
         content_hash=content_hash,
         title="Test Article",
         body="Test body content here.",
-        ingested_at=datetime.now(timezone.utc),
+        ingested_at=datetime.now(UTC),
         is_manual=True,
     )
     db.add(content)
@@ -55,11 +57,14 @@ def test_is_duplicate_returns_true_after_insert(db):
     assert is_duplicate(content_hash, db) is True
 
 
-@pytest.mark.parametrize("title,body", [
-    ("", "some body"),
-    ("some title", ""),
-    ("  leading spaces  ", "  body  "),
-])
+@pytest.mark.parametrize(
+    "title,body",
+    [
+        ("", "some body"),
+        ("some title", ""),
+        ("  leading spaces  ", "  body  "),
+    ],
+)
 def test_compute_content_hash_handles_edge_cases(title, body):
     result = compute_content_hash(title, body)
     assert isinstance(result, str)

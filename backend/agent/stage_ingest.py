@@ -1,7 +1,7 @@
 """Stage 1 — Retrieve relevant content via ChromaDB semantic search."""
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -67,8 +67,8 @@ def check_reuse_guard(topic: str) -> tuple[bool, float]:
 
     if created_at_str:
         try:
-            created_at = datetime.fromisoformat(created_at_str).replace(tzinfo=timezone.utc)
-            age_hours = (datetime.now(timezone.utc) - created_at).total_seconds() / 3600
+            created_at = datetime.fromisoformat(created_at_str).replace(tzinfo=UTC)
+            age_hours = (datetime.now(UTC) - created_at).total_seconds() / 3600
             if age_hours > settings.reuse_window_hours:
                 return False, similarity
         except ValueError:
@@ -81,7 +81,7 @@ def _maybe_trigger_ingestion(db: Session) -> None:
     """Trigger RSS ingestion if no content was ingested in the last 30 minutes."""
     from backend.database.models import IngestedContent
 
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=30)
+    cutoff = datetime.now(UTC) - timedelta(minutes=30)
     recent = (
         db.query(IngestedContent)
         .filter(IngestedContent.ingested_at >= cutoff, IngestedContent.is_manual == False)  # noqa: E712

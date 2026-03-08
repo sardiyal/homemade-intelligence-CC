@@ -5,7 +5,12 @@ import logging
 
 import anthropic
 
-from backend.agent.prompts import build_zh_tw_elder_format_messages, build_zh_tw_format_messages
+from backend.agent.prompts import (
+    build_consolidated_zh_tw_elder_messages,
+    build_consolidated_zh_tw_messages,
+    build_zh_tw_elder_format_messages,
+    build_zh_tw_format_messages,
+)
 from backend.agent.token_tracker import RunTokenTracker
 from backend.config import settings
 
@@ -38,7 +43,7 @@ async def _format_single(
     def _call() -> str:
         response = client.messages.create(
             model=settings.anthropic_model,
-            max_tokens=3000,
+            max_tokens=12000,
             system=system,
             messages=messages,
         )
@@ -75,4 +80,37 @@ async def format_all_audiences(
     )
 
     logger.info("Stage 4 complete: zh_tw=%d chars, elder=%d chars", len(zh_tw_content), len(elder_content))
+    return zh_tw_content, elder_content
+
+
+async def format_consolidated_audiences(
+    base_analysis: str,
+    topics: list[dict],
+    tracker: RunTokenTracker,
+) -> tuple[str, str]:
+    """Concurrently format a consolidated report for TC general and TC elder audiences.
+
+    Uses audience-specific prompts:
+    - TC general: covers both US and Taiwan perspectives
+    - TC elder: focuses on Taiwan, elder-friendly formatting
+
+    Args:
+        base_analysis: English consolidated analysis from the batch pipeline.
+        topics: List of topic dicts (topic, domain, rationale).
+        tracker: Token usage tracker.
+
+    Returns:
+        Tuple of (content_zh_tw, content_zh_tw_elder).
+    """
+    zh_tw_system, zh_tw_messages = build_consolidated_zh_tw_messages(base_analysis, topics)
+    elder_system, elder_messages = build_consolidated_zh_tw_elder_messages(base_analysis, topics)
+
+    logger.info("Consolidated format: launching concurrent TC format calls")
+
+    zh_tw_content, elder_content = await asyncio.gather(
+        _format_single(zh_tw_system, zh_tw_messages, "format_consolidated_zh_tw", tracker),
+        _format_single(elder_system, elder_messages, "format_consolidated_zh_tw_elder", tracker),
+    )
+
+    logger.info("Consolidated format complete: zh_tw=%d chars, elder=%d chars", len(zh_tw_content), len(elder_content))
     return zh_tw_content, elder_content

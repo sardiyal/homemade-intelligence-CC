@@ -69,9 +69,8 @@ logs/
 *.sqlite3
 *.db
 
-# ----- Reports — generated drafts (keep published versions) -----
-# Uncomment below to ignore generated draft reports:
-# reports/**/draft-*
+# ----- Reports — generated output (all languages) -----
+reports/**/*.md
 
 # ----- Temporary files -----
 tmp/
@@ -81,6 +80,9 @@ temp/
 # ----- Runtime data (generated) -----
 data/
 !data/.gitkeep
+
+# ----- Task scratchpad (session-scoped) -----
+tasks/todo.md
 
 # ----- Node.js (frontend) -----
 frontend/node_modules/

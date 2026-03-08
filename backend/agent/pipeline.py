@@ -9,15 +9,15 @@ the pipeline — it runs to completion regardless.
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
+from backend.agent.report_exporter import embed_report_summary, export_report_to_markdown
 from backend.agent.stage_analyze import analyze_blocking, analyze_stream
 from backend.agent.stage_format import format_all_audiences
 from backend.agent.stage_ingest import check_reuse_guard, retrieve_relevant_content
 from backend.agent.stage_triangulate import triangulate_sources
 from backend.agent.token_tracker import RunTokenTracker
 from backend.database.models import Report
-from backend.vector_store.chroma import upsert_report_summary
 
 logger = logging.getLogger(__name__)
 
@@ -136,18 +136,22 @@ async def _run_pipeline(
             report.tokens_used = tracker.total_tokens_used
             report.tokens_cached = tracker.total_tokens_cached
             report.cost_usd = tracker.total_cost_usd
-            report.completed_at = datetime.now(timezone.utc)
+            report.completed_at = datetime.now(UTC)
             db.commit()
 
             _embed_report_summary(report)
+            _export_report_markdown(report)
             tracker.log_summary()
 
-            await emit("complete", {
-                "report_id": report_id,
-                "tokens_used": tracker.total_tokens_used,
-                "tokens_cached": tracker.total_tokens_cached,
-                "cost_usd": tracker.total_cost_usd,
-            })
+            await emit(
+                "complete",
+                {
+                    "report_id": report_id,
+                    "tokens_used": tracker.total_tokens_used,
+                    "tokens_cached": tracker.total_tokens_cached,
+                    "cost_usd": tracker.total_cost_usd,
+                },
+            )
 
         except Exception as exc:
             logger.exception("Pipeline failed for report %d: %s", report_id, exc)
@@ -209,7 +213,7 @@ async def run_pipeline_blocking(
             topic=topic,
             domain=domain,
             status="generating",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         db.add(report)
         db.commit()
@@ -239,10 +243,11 @@ async def run_pipeline_blocking(
             report.tokens_used = tracker.total_tokens_used
             report.tokens_cached = tracker.total_tokens_cached
             report.cost_usd = tracker.total_cost_usd
-            report.completed_at = datetime.now(timezone.utc)
+            report.completed_at = datetime.now(UTC)
             db.commit()
 
             _embed_report_summary(report)
+            _export_report_markdown(report)
             tracker.log_summary()
 
         except Exception as exc:
@@ -254,33 +259,24 @@ async def run_pipeline_blocking(
         return report
 
 
+def _export_report_markdown(report: Report) -> None:
+    try:
+        export_report_to_markdown(report)
+    except Exception as exc:
+        logger.warning("Markdown export failed for report %d: %s", report.id, exc)
+
+
 def _inject_manual_content(title: str, body: str, db) -> None:
     try:
         from backend.ingestion.manual import inject_text
+
         inject_text(title=title, body=body, db=db)
     except Exception as exc:
         logger.warning("Manual inject failed: %s", exc)
 
 
 def _embed_report_summary(report: Report) -> None:
-    try:
-        if not report.content_en:
-            return
-        doc_id = f"report_{report.id}"
-        upsert_report_summary(
-            doc_id=doc_id,
-            text=report.content_en[:800],
-            metadata={
-                "report_id": report.id,
-                "topic": report.topic,
-                "domain": report.domain or "",
-                "created_at": report.created_at.isoformat() if report.created_at else "",
-                "bias_score": report.bias_score or 0.0,
-            },
-        )
-        report.chroma_doc_id = doc_id
-    except Exception as exc:
-        logger.warning("ChromaDB report embedding failed: %s", exc)
+    embed_report_summary(report)
 
 
 def _sse(event: str, data: dict) -> str:

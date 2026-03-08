@@ -1,7 +1,7 @@
 """Manual text and URL injection into the ingestion pipeline."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 from sqlalchemy.orm import Session
@@ -44,7 +44,7 @@ def inject_text(
         url=url,
         title=title,
         body=body,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
         is_manual=True,
         chroma_doc_id=doc_id,
     )

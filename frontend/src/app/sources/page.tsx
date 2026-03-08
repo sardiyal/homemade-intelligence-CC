@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ManualInjectPanel from "@/components/sources/ManualInjectPanel";
+import PollStatusPanel from "@/components/sources/PollStatusPanel";
 
 interface Source {
   id: number;
@@ -13,6 +14,16 @@ interface Source {
   language: string | null;
   is_active: boolean | null;
   article_count: number;
+}
+
+interface PollStatus {
+  last_poll_started: string | null;
+  last_poll_completed: string | null;
+  last_poll_duration_seconds: number | null;
+  is_polling: boolean;
+  total_polls: number;
+  next_scheduled_poll: string | null;
+  results: { source_name: string; new_articles: number; polled_at: string }[];
 }
 
 const BIAS_COLORS: Record<string, string> = {
@@ -29,6 +40,7 @@ export default function SourcesPage() {
   const [loading, setLoading] = useState(true);
   const [ingesting, setIngesting] = useState(false);
   const [ingestResult, setIngestResult] = useState<string>("");
+  const [pollStatus, setPollStatus] = useState<PollStatus | null>(null);
 
   const fetchSources = () => {
     fetch("http://localhost:8000/api/sources")
@@ -38,7 +50,19 @@ export default function SourcesPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchSources(); }, []);
+  const fetchPollStatus = () => {
+    fetch("http://localhost:8000/api/sources/poll-status")
+      .then((r) => r.json())
+      .then(setPollStatus)
+      .catch(console.error);
+  };
+
+  useEffect(() => {
+    fetchSources();
+    fetchPollStatus();
+    const interval = setInterval(fetchPollStatus, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleIngest = async () => {
     setIngesting(true);
@@ -48,6 +72,7 @@ export default function SourcesPage() {
       const data = await res.json();
       setIngestResult(`Ingested ${data.total_new} new articles across ${Object.keys(data.by_source).length} sources`);
       fetchSources();
+      fetchPollStatus();
     } catch (err) {
       setIngestResult(`Error: ${err}`);
     } finally {
@@ -67,6 +92,8 @@ export default function SourcesPage() {
           {ingesting ? "Polling..." : "Poll RSS Now"}
         </button>
       </div>
+
+      <PollStatusPanel status={pollStatus} />
 
       {ingestResult && (
         <div className="p-3 bg-gray-900 rounded-lg border border-gray-800 text-sm text-gray-300">

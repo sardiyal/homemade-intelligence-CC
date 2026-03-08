@@ -20,7 +20,13 @@ select = [
 ]
 ignore = [
     "E501", # line too long — handled by formatter
+    "B008", # FastAPI Depends() in function defaults is the standard DI pattern
 ]
+
+[lint.per-file-ignores]
+# prompts.py contains intentional Traditional Chinese fullwidth punctuation in
+# prompt strings (，（）：etc.) — suppress ambiguous-unicode-character warnings.
+"backend/agent/prompts.py" = ["RUF001", "RUF002"]
 
 [lint.isort]
 known-first-party = ["homemade_intelligence"]

@@ -1,6 +1,6 @@
 """CRUD operations for predictions."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -30,7 +30,7 @@ def create_prediction(request: CreatePredictionRequest, db: Session) -> Predicti
         polymarket_market_id=request.polymarket_market_id,
         metaculus_community_pct=request.metaculus_community_pct,
         polymarket_odds_pct=request.polymarket_odds_pct,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
     db.add(prediction)
     db.commit()
@@ -61,7 +61,7 @@ def resolve_prediction(prediction_id: int, outcome: str, notes: str, db: Session
 
     prediction.outcome = outcome
     prediction.resolution_notes = notes
-    prediction.resolved_at = datetime.now(timezone.utc)
+    prediction.resolved_at = datetime.now(UTC)
 
     forecast = prediction.confidence_pct / 100.0
     outcome_binary = outcome_to_binary(outcome)
@@ -69,7 +69,7 @@ def resolve_prediction(prediction_id: int, outcome: str, notes: str, db: Session
 
     outcome_record = PredictionOutcome(
         prediction_id=prediction.id,
-        scored_at=datetime.now(timezone.utc),
+        scored_at=datetime.now(UTC),
         forecast=forecast,
         outcome_binary=outcome_binary,
         brier_score=brier,

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import ActiveReportsTracker from "@/components/report/ActiveReportsTracker";
 
 interface Report {
   id: number;
@@ -30,16 +31,51 @@ const STATUS_COLORS: Record<string, string> = {
   pending: "text-gray-400",
 };
 
+interface ActiveReport {
+  id: number;
+  topic: string;
+  domain: string | null;
+  status: string;
+  created_at: string | null;
+  has_active_pipeline: boolean;
+}
+
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeReports, setActiveReports] = useState<ActiveReport[]>([]);
+  const prevActiveCount = useRef(0);
 
-  useEffect(() => {
+  const fetchReports = () => {
     fetch("http://localhost:8000/api/reports?limit=50")
       .then((r) => r.json())
       .then(setReports)
       .catch(console.error)
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchReports();
+
+    const pollActive = () => {
+      fetch("http://localhost:8000/api/reports/active")
+        .then((r) => r.json())
+        .then((data: unknown) => {
+          if (!Array.isArray(data)) return;
+          const typedData = data as ActiveReport[];
+          setActiveReports(typedData);
+          // Auto-refresh full list when an active report completes
+          if (prevActiveCount.current > 0 && typedData.length < prevActiveCount.current) {
+            fetchReports();
+          }
+          prevActiveCount.current = typedData.length;
+        })
+        .catch(console.error);
+    };
+
+    pollActive();
+    const interval = setInterval(pollActive, 5_000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -51,6 +87,8 @@ export default function ReportsPage() {
           + New Report
         </Link>
       </div>
+
+      <ActiveReportsTracker reports={activeReports} />
 
       {loading ? (
         <div className="text-gray-400">Loading reports...</div>

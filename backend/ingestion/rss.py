@@ -1,7 +1,7 @@
 """RSS/Atom feed poller using feedparser."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import feedparser
 from sqlalchemy.orm import Session
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def _parse_published(entry: dict) -> datetime | None:
     """Extract published datetime from a feedparser entry."""
     if hasattr(entry, "published_parsed") and entry.published_parsed:
-        return datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+        return datetime(*entry.published_parsed[:6], tzinfo=UTC)
     return None
 
 

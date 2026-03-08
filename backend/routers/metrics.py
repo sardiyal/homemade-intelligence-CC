@@ -1,9 +1,6 @@
 """Performance metrics and calibration endpoints."""
 
-from datetime import date, datetime, timedelta, timezone
-
 from fastapi import APIRouter, Depends
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from backend.database.connection import get_db
@@ -53,7 +50,7 @@ def accuracy_timeline(
 
     # Group by period
     buckets: dict[str, list[float]] = {}
-    for outcome_row, dom, resolved_at in rows:
+    for outcome_row, _dom, resolved_at in rows:
         if not resolved_at:
             continue
         if granularity == "daily":
@@ -69,11 +66,12 @@ def accuracy_timeline(
     for period in sorted(buckets):
         values = buckets[period]
         accuracy = sum(1 for v in values if v >= 0.5) / len(values)
-        mean_brier = sum((f - o) ** 2 for f, o in [(0.5, v) for v in values]) / len(values)
-        timeline.append({
-            "period": period,
-            "count": len(values),
-            "accuracy": round(accuracy, 4),
-        })
+        timeline.append(
+            {
+                "period": period,
+                "count": len(values),
+                "accuracy": round(accuracy, 4),
+            }
+        )
 
     return {"timeline": timeline, "granularity": granularity}

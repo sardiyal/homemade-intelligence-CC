@@ -1,12 +1,54 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import StreamingOutput from "@/components/report/StreamingOutput";
-import ReportViewer from "@/components/report/ReportViewer";
+import BatchProgress from "@/components/report/BatchProgress";
 
 const DOMAINS = ["general", "geopolitics", "markets", "taiwan", "energy"];
 
+interface IdentifiedTopic {
+  topic: string;
+  domain: string;
+  rationale: string;
+}
+
+async function consumeSSE(
+  url: string,
+  body: string,
+  onEvent: (type: string, data: Record<string, unknown>) => void,
+): Promise<void> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() ?? "";
+
+    for (const chunk of parts) {
+      if (!chunk.trim()) continue;
+      const eventLine = chunk.split("\n").find((l) => l.startsWith("event:"));
+      const dataLine = chunk.split("\n").find((l) => l.startsWith("data:"));
+      if (!eventLine || !dataLine) continue;
+      const eventType = eventLine.replace("event:", "").trim();
+      const data = JSON.parse(dataLine.replace("data:", "").trim());
+      onEvent(eventType, data);
+    }
+  }
+}
+
 export default function NewReportPage() {
+  // Single-report state
   const [topic, setTopic] = useState("");
   const [domain, setDomain] = useState("general");
   const [manualTitle, setManualTitle] = useState("");
@@ -15,7 +57,16 @@ export default function NewReportPage() {
   const [streamEvents, setStreamEvents] = useState<{ type: string; data: Record<string, unknown> }[]>([]);
   const [completedReport, setCompletedReport] = useState<null | { id: number }>(null);
   const [error, setError] = useState("");
-  const eventSourceRef = useRef<EventSource | null>(null);
+
+  // Batch state (consolidated single report)
+  const [isBatchRunning, setIsBatchRunning] = useState(false);
+  const [batchTopics, setBatchTopics] = useState<IdentifiedTopic[]>([]);
+  const [batchStage, setBatchStage] = useState("");
+  const [batchStreamedText, setBatchStreamedText] = useState("");
+  const [batchTokens, setBatchTokens] = useState<number | null>(null);
+  const [batchCost, setBatchCost] = useState<number | null>(null);
+  const [batchReportId, setBatchReportId] = useState<number | null>(null);
+  const [batchError, setBatchError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,49 +80,62 @@ export default function NewReportPage() {
     const body = JSON.stringify({ topic, domain, manual_text: manualText, manual_title: manualTitle });
 
     try {
-      const response = await fetch("http://localhost:8000/api/reports/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
+      await consumeSSE("http://localhost:8000/api/reports/generate", body, (eventType, data) => {
+        setStreamEvents((prev) => [...prev, { type: eventType, data }]);
+        if (eventType === "complete") setCompletedReport({ id: data.report_id as number });
+        if (eventType === "error") setError((data.message as string) || "Unknown error");
       });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n\n");
-        buffer = lines.pop() ?? "";
-
-        for (const chunk of lines) {
-          if (!chunk.trim()) continue;
-          const eventLine = chunk.split("\n").find((l) => l.startsWith("event:"));
-          const dataLine = chunk.split("\n").find((l) => l.startsWith("data:"));
-          if (!eventLine || !dataLine) continue;
-          const eventType = eventLine.replace("event:", "").trim();
-          const data = JSON.parse(dataLine.replace("data:", "").trim());
-
-          setStreamEvents((prev) => [...prev, { type: eventType, data }]);
-
-          if (eventType === "complete") {
-            setCompletedReport({ id: data.report_id });
-          }
-          if (eventType === "error") {
-            setError(data.message || "Unknown error");
-          }
-        }
-      }
     } catch (err) {
       setError(String(err));
     } finally {
       setIsStreaming(false);
     }
   };
+
+  const handleBatch = async () => {
+    setIsBatchRunning(true);
+    setBatchTopics([]);
+    setBatchStage("identifying_topics");
+    setBatchStreamedText("");
+    setBatchTokens(null);
+    setBatchCost(null);
+    setBatchReportId(null);
+    setBatchError("");
+
+    const body = JSON.stringify({ days_lookback: 7, max_topics: 10 });
+
+    try {
+      await consumeSSE(
+        "http://localhost:8000/api/reports/generate-batch",
+        body,
+        (eventType, data) => {
+          if (eventType === "topics_identified") {
+            setBatchTopics(data.topics as IdentifiedTopic[]);
+          }
+          if (eventType === "status") {
+            setBatchStage((data.stage as string) || "");
+          }
+          if (eventType === "token") {
+            setBatchStreamedText((prev) => prev + (data.text as string));
+          }
+          if (eventType === "complete") {
+            setBatchReportId(data.report_id as number);
+            setBatchTokens(data.tokens_used as number);
+            setBatchCost(data.cost_usd as number);
+          }
+          if (eventType === "error") {
+            setBatchError((data.message as string) || "Batch failed");
+          }
+        },
+      );
+    } catch (err) {
+      setBatchError(String(err));
+    } finally {
+      setIsBatchRunning(false);
+    }
+  };
+
+  const showBatchSection = isBatchRunning || batchTopics.length > 0 || batchReportId !== null;
 
   return (
     <div className="space-y-6">
@@ -123,14 +187,50 @@ export default function NewReportPage() {
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={isStreaming || !topic.trim()}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
-        >
-          {isStreaming ? "Analyzing..." : "Analyze"}
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            type="submit"
+            disabled={isStreaming || isBatchRunning || !topic.trim()}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+          >
+            {isStreaming ? "Analyzing..." : "Analyze"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleBatch}
+            disabled={isStreaming || isBatchRunning}
+            className="px-6 py-2 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+          >
+            {isBatchRunning ? "Generating Top 10..." : "Generate Top 10"}
+          </button>
+
+          {!isBatchRunning && (
+            <span className="text-xs text-gray-500">
+              Scans last 7 days, generates 1 consolidated briefing on 10 topics
+            </span>
+          )}
+        </div>
       </form>
+
+      {showBatchSection && (
+        <div className="space-y-3">
+          <BatchProgress
+            topics={batchTopics}
+            stage={batchStage}
+            streamedText={batchStreamedText}
+            tokensUsed={batchTokens}
+            costUsd={batchCost}
+            completedReportId={batchReportId}
+            isRunning={isBatchRunning}
+          />
+          {batchError && (
+            <div className="p-4 bg-red-950 border border-red-800 rounded-xl text-red-300 text-sm">
+              Batch error: {batchError}
+            </div>
+          )}
+        </div>
+      )}
 
       {(isStreaming || streamEvents.length > 0) && (
         <StreamingOutput events={streamEvents} isStreaming={isStreaming} />

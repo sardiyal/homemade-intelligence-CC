@@ -13,12 +13,15 @@ _scheduler: AsyncIOScheduler | None = None
 
 def _rss_job() -> None:
     """Poll all active RSS sources."""
+    from backend.ingestion.poll_tracker import mark_poll_complete, mark_poll_start
     from backend.ingestion.rss import poll_all_active_sources
 
+    mark_poll_start()
     with SessionLocal() as db:
         results = poll_all_active_sources(db)
         total = sum(results.values())
         logger.info("RSS poll complete: %d new articles across %d sources", total, len(results))
+    mark_poll_complete(results)
 
 
 def _market_job() -> None:
@@ -57,8 +60,28 @@ def start_scheduler() -> AsyncIOScheduler:
     _scheduler.add_job(_fred_job, IntervalTrigger(hours=4), id="fred_poll", replace_existing=True)
 
     _scheduler.start()
+    _update_next_poll_time()
     logger.info("Background scheduler started (RSS:30min, Market:15min, FRED:4h)")
     return _scheduler
+
+
+def _update_next_poll_time() -> None:
+    """Refresh the poll tracker's next-run-time from the scheduler."""
+    if _scheduler is None:
+        return
+    from backend.ingestion.poll_tracker import set_next_scheduled_poll
+
+    job = _scheduler.get_job("rss_poll")
+    if job and job.next_run_time:
+        set_next_scheduled_poll(job.next_run_time)
+
+
+def get_next_rss_poll_time():
+    """Return the next scheduled RSS poll time, or None."""
+    if _scheduler is None:
+        return None
+    job = _scheduler.get_job("rss_poll")
+    return job.next_run_time if job else None
 
 
 def stop_scheduler() -> None:

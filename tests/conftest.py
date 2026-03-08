@@ -23,8 +23,8 @@ def db(engine):
 
     connection = engine.connect()
     transaction = connection.begin()
-    SessionLocal = sessionmaker(bind=connection)
-    session = SessionLocal()
+    session_factory = sessionmaker(bind=connection)
+    session = session_factory()
 
     yield session
 

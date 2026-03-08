@@ -49,13 +49,10 @@ def triangulate_sources(source_chunks: list[dict]) -> tuple[dict, str, float]:
             f"minimum {MIN_NON_ANGLOPHONE_SOURCES}). Perspective may be Western-centric."
         )
 
-    meaningful_poles = [
-        label for label in bias_coverage
-        if label not in ("unknown", "center") and bias_coverage[label]
-    ]
-    has_left = any(l in ("left",) for l in meaningful_poles)
-    has_right = any(l in ("right",) for l in meaningful_poles)
-    has_state = any(l in ("state-affiliated",) for l in meaningful_poles)
+    meaningful_poles = [label for label in bias_coverage if label not in ("unknown", "center") and bias_coverage[label]]
+    has_left = any(pole in ("left",) for pole in meaningful_poles)
+    has_right = any(pole in ("right",) for pole in meaningful_poles)
+    has_state = any(pole in ("state-affiliated",) for pole in meaningful_poles)
 
     pole_count = sum([has_left, has_right, has_state])
     if pole_count < REQUIRED_BIAS_POLES and len(bias_coverage) < REQUIRED_BIAS_POLES:
@@ -122,8 +119,7 @@ def _compute_divergence_score(bias_coverage: dict, source_chunks: list[dict]) ->
 
     # Non-Anglophone bonus
     non_anglophone = sum(
-        1 for c in source_chunks
-        if c.get("metadata", {}).get("language", "en") not in ANGLOPHONE_LANGUAGES
+        1 for c in source_chunks if c.get("metadata", {}).get("language", "en") not in ANGLOPHONE_LANGUAGES
     )
     if non_anglophone >= 1:
         score += 0.1

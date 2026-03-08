@@ -1,7 +1,7 @@
 """Yahoo Finance data ingestion via yfinance."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -57,7 +57,7 @@ def ingest_market_snapshot(db: Session) -> int:
 
     source = _ensure_yfinance_source(db)
     new_count = 0
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for ticker_sym, ticker_name in MARKET_TICKERS.items():
         try:

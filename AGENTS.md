@@ -119,6 +119,14 @@ When generating intelligence reports or analysis:
 6. Use the Analytical Failure Mode checklist before finalizing
 7. For Taiwan-audience content: include 謠言警示 section addressing active misinformation
 
+## Workflow
+
+All AI agents must follow the workflow guidelines in [`WORKFLOWGUIDE.md`](WORKFLOWGUIDE.md).
+
+**At the start of every session**, review [`tasks/lessons.md`](tasks/lessons.md) for patterns from past corrections before doing any work.
+
+**When asked for a to-do list or task plan**, write it to `tasks/todo.md` (gitignored, session-scoped).
+
 ## Commit Messages
 
 Imperative mood, optional category prefix, under 72 characters:

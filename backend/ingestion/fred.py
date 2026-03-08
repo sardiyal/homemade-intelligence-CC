@@ -1,7 +1,7 @@
 """FRED (Federal Reserve Economic Data) ingestion via fredapi."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -63,7 +63,7 @@ def ingest_fred_indicators(db: Session) -> int:
     fred = Fred(api_key=settings.fred_api_key)
     source = _ensure_fred_source(db)
     new_count = 0
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for series_id, description in FRED_SERIES.items():
         try:

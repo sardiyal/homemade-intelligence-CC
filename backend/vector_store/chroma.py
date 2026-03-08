@@ -101,5 +101,5 @@ def _flatten_results(results: dict) -> list[dict]:
     dists = results.get("distances", [[]])[0]
     return [
         {"id": i, "document": d, "metadata": m, "distance": dist}
-        for i, d, m, dist in zip(ids, docs, metas, dists)
+        for i, d, m, dist in zip(ids, docs, metas, dists, strict=False)
     ]
